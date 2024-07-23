@@ -160,8 +160,8 @@
 ^https:\/\/.*bing.com\/search\?q=gi\+([^&]+).+ https://www.google.com/search?&tbm=isch&q=$1 302
 ^https:\/\/.*bing.com\/search\?q=([^+]+)\+gi.+ https://www.google.com/search?&tbm=isch&q=$1 302
 # by  xxx (必应)
-^https:\/\/.*bing.com\/search\?q=by\+([^&]+) https://www.bing.com/search?q=$1 302
-^https:\/\/.*bing.com\/search\?q=([^+]+)\+by https://www.bing.com/search?q=$1 302
+^https:\/\/.*bing.com\/search\?q=by\+([^&]+).+ https://www.bing.com/search?q=$1 301
+^https:\/\/.*bing.com\/search\?q=([^+]+)\+by.+ https://www.bing.com/search?q=$1 301
 # ios  xxx (苹果应用搜索)
 ^https:\/\/.*bing.com\/search\?q=ios\+([^&]+).+ https://www.qimai.cn/search/index/search/$1 302
 ^https:\/\/.*bing.com\/search\?q=([^+]+)\+ios.+ https://www.qimai.cn/search/index/search/$1 302
