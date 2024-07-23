@@ -166,7 +166,7 @@
 ^https:\/\/.*bing.com\/search\?q=ios\+([^&]+).+ https://www.qimai.cn/search/index/search/$1 302
 ^https:\/\/.*bing.com\/search\?q=([^+]+)\+ios.+ https://www.qimai.cn/search/index/search/$1 302
 #     xxx （无指令默认为 Bing）
-^https:\/\/.*bing.com\/search\?q=([^&]+).+ https://www.bing.com/search?q=$1 302
+^https:\/\/.*bing.com\/search\?q=([^&]+).+ https://www.google.com/search?q=$1 302
 
 [MITM]
 hostname = %APPEND% *.bing.com
