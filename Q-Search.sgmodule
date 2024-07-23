@@ -1,0 +1,158 @@
+#!name=Q-Search Plus
+#!desc=Q-Search补充
+#引用自墨鱼@ddgksf2013，转换为Surge格式并加入自用重写
+[URL Rewrite]
+
+#>>>>>>>>>>>>>>>>>>>>>>>自用
+# TMDB
+^https:\/\/bing.com\/search\?q=tmdb\+([^&]+).+ https://www.themoviedb.org/search?query=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+tmdb.+ https://www.themoviedb.org/search?query=$1 302
+# ng  (切换至尼日利亚区)
+^https:\/\/bing.com\/search\?q=ng&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143561&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=ng&urlDesc= 302
+# pp  xxx (perplexity)
+^https:\/\/bing.com\/search\?q=pp\+([^&]+).+ https://www.perplexity.ai/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+pp.+ https://www.perplexity.ai/search?q=$1 302
+
+#>>>>>>>>>>>>>>>>>>>>>>>翻译
+# yd  xxx (有道词典)
+^https:\/\/bing.com\/search\?q=yd\+([^&]+).+ http://dict.youdao.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+yd.+ http://dict.youdao.com/search?q=$1 302
+# trc xxx (Google 译至中)
+^https:\/\/bing.com\/search\?q=trc\+([^&]+).+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+trc.+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=$1 302
+# tre xxx (Google 译至英)
+^https:\/\/bing.com\/search\?q=tre\+([^&]+).+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+tre.+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=$1 302
+# trj xxx (Google 译至日)
+^https:\/\/bing.com\/search\?q=trj\+([^&]+).+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=ja&text=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+trj.+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=ja&text=$1 302
+
+#>>>>>>>>>>>>>>>>>>>>>>>社区
+# tt    xxx (头条)
+^https:\/\/bing.com\/search\?q=tt\+([^&]+).+ https://so.toutiao.com/search?keyword=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+tt.+ https://so.toutiao.com/search?keyword=$1 302
+# db    xxx (豆瓣)
+^https:\/\/bing.com\/search\?q=db\+([^&]+).+ https://m.douban.com/search?query=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+db.+ https://m.douban.com/search?query=$1 302
+# zh    xxx (知乎)
+^https:\/\/bing.com\/search\?q=zh\+([^&]+).+ http://www.zhihu.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+zh.+ http://www.zhihu.com/search?q=$1 302
+# wb    xxx (微博)
+^https:\/\/bing.com\/search\?q=wb\+([^&]+).+ https://s.weibo.com/weibo/$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+wb.+ https://s.weibo.com/weibo/$1 302
+# wx    xxx (微信)
+^https:\/\/bing.com\/search\?q=wx\+([^&]+).+ https://weixin.sogou.com/weixinwap?query=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+wx.+ https://weixin.sogou.com/weixinwap?query=$1 302
+# up xxx (Unsplash)
+^https:\/\/bing.com\/search\?q=up\+([^&]+).+ https://unsplash.com/s/photos/$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+up.+ https://unsplash.com/s/photos/$1 302
+# sspai xxx (少数派站内搜索)
+^https:\/\/bing.com\/search\?q=sspai\+([^&]+).+ https://sspai.com/search/post/$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+sspai.+ https://sspai.com/search/post/$1 302
+# ssp   xxx (Google 搜索少数派)
+^https:\/\/bing.com\/search\?q=ssp\+([^&]+).+ https://www.google.com/search?as_q=$1&as_sitesearch=sspai.com 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+ssp.+ https://www.google.com/search?as_q=$1&as_sitesearch=sspai.com 302
+# tw    xxx (Twitter)
+^https:\/\/bing.com\/search\?q=tw\+([^&]+).+ https://twitter.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+tw.+ https://twitter.com/search?q=$1 302
+# gh    xxx (GitHub)
+^https:\/\/bing.com\/search\?q=gh\+([^&]+).+ https://github.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+gh.+ https://github.com/search?q=$1 302
+# gu    xxx (GitHub User)
+^https:\/\/bing.com\/search\?q=gu\+([^&]+).+ https://github.com/search?q=$1&type=users 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+gu.+ https://github.com/search?q=$1&type=users 302
+# gc    xxx (GitHub Code)
+^https:\/\/bing.com\/search\?q=gc\+([^&]+).+ https://github.com/search?o=desc&q=$1&s=indexed&type=Code 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+gc.+ https://github.com/search?o=desc&q=$1&s=indexed&type=Code 302
+# so    xxx (Stack Overflow)
+^https:\/\/bing.com\/search\?q=so\+([^&]+).+ https://stackoverflow.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+so.+ https://stackoverflow.com/search?q=$1 302
+# se    xxx (StackExchange)
+^https:\/\/bing.com\/search\?q=se\+([^&]+).+ https://stackexchange.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+se.+ https://stackexchange.com/search?q=$1 302
+# wa    xxx (WolframAlpha)
+^https:\/\/bing.com\/search\?q=wa\+([^&]+).+ https://www.wolframalpha.com/input/?i=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+wa.+ https://www.wolframalpha.com/input/?i=$1 302
+# rd    xxx (Reddit)
+^https:\/\/bing.com\/search\?q=rd\+([^&]+).+ https://www.reddit.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+rd.+ https://www.reddit.com/search?q=$1 302
+
+#>>>>>>>>>>>>>>>>>>>>>>>购物
+# zdm xxx (什么值得买)
+^https:\/\/bing.com\/search\?q=zdm\+([^&]+).+ https://search.m.smzdm.com/?v=b&s=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+zdm.+ https://search.m.smzdm.com/?v=b&s=$1 302
+# jd  xxx (京东)
+^https:\/\/bing.com\/search\?q=jd\+([^&]+).+ openapp.jdmobile://virtual?params={"des":"productList","keyWord":"$1","from":"search","category":"jump"} 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+jd.+ openapp.jdmobile://virtual?params={"des":"productList","keyWord":"$1","from":"search","category":"jump"} 302
+# tb  xxx (淘宝)
+^https:\/\/bing.com\/search\?q=tb\+([^&]+).+ taobao://s.taobao.com?q=$1 302
+^https:\/\/bing.com\/search\q=([^+]+)\+tb.+ taobao://s.taobao.com?q=$1 302
+
+#>>>>>>>>>>>>>>>>>>>>>>>视频
+# yt  xxx (YouTube)
+^https:\/\/bing.com\/search\?q=yt\+([^&]+).+ https://www.youtube.com/results?search_query=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+yt.+ https://www.youtube.com/results?search_query=$1 302
+# bli xxx (哔哩哔哩)
+^https:\/\/bing.com\/search\?q=bli\+([^&]+).+ https://m.bilibili.com/search?keyword=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+bli.+ https://m.bilibili.com/search?keyword=$1 302
+# gd  xxx (Google 搜索 Google Drive 资源)
+^https:\/\/bing.com\/search\?q=gd\+([^&]+).+ https://www.google.com/search?q=%22Google+Drive%22+$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+gd.+ https://www.google.com/search?q=%22Google+Drive%22+$1 302
+# tgd xxx (t.me/gdurl 搜索 Google Drive 资源)
+^https:\/\/bing.com\/search\?q=tgd\+([^&]+).+ https://t.me/s/gdurl?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+tgd.+ https://t.me/s/gdurl?q=$1 302
+# ph  xxx (PornHub)
+^https:\/\/bing.com\/search\?q=ph\+([^&]+).+ https://cn.pornhub.com/video/search?search=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+ph.+ https://cn.pornhub.com/video/search?search=$1 302
+# af  xxx (Acfun)
+^https:\/\/bing.com\/search\?q=af\+([^&]+).+ https://www.acfun.cn/search?keyword=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+af.+ https://www.acfun.cn/search?keyword=$1 302
+# ys  xxx (搜片)
+^https:\/\/bing.com\/search\?q=ys\+([^&]+).+ https://soupian.icu/search?key=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+ys.+ https://soupian.icu/search?key=$1 302
+
+#>>>>>>>>>>>>>>>>>>>>>>>苹果商店切换
+# cn  (切换至中国区)
+^https:\/\/bing.com\/search\?q=cn&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143465&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=cn&urlDesc= 302
+# hk  (切换至香港区)
+^https:\/\/bing.com\/search\?q=hk&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143463&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=hk&urlDesc= 302
+# tw  (切换至台湾区)
+^https:\/\/bing.com\/search\?q=tw&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143470&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=tw&urlDesc= 302
+# us  (切换至美国区)
+^https:\/\/bing.com\/search\?q=us&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143441&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=us&urlDesc= 302
+# jp  (切换至日本区)
+^https:\/\/bing.com\/search\?q=jp&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143462&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=jp&urlDesc= 302
+# kr  (切换至韩国区)
+^https:\/\/bing.com\/search\?q=kr&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143466&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=kr&urlDesc= 302
+# tr  (切换至土耳其区)
+^https:\/\/bing.com\/search\?q=tr&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143480&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=tr&urlDesc= 302
+# sg  (切换至新加坡区)
+^https:\/\/bing.com\/search\?q=sg&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143464&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=tr&urlDesc= 302
+
+#>>>>>>>>>>>>>>>>>>>>>>>搜索
+# bd  xxx (百度搜索)
+^https:\/\/bing.com\/search\?q=bd\+([^&]+).+ https://www.baidu.com/s?wd=$1 302
+^https:\/\/bing.com\/search\?q=((.(?!bd))+)\+bd.+ https://www.baidu.com/s?wd=$1 302
+# wk  xxx (维基搜索)
+^https:\/\/bing.com\/search\?q=wk\+([^&]+).+ https://zh.wikipedia.org/wiki/$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+wk.+ https://zh.wikipedia.org/wiki/$1 302
+# wz  xxx (无追搜索)
+^https:\/\/bing.com\/search\?q=wz\+([^&]+).+ https://www.wuzhuiso.com/s?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+wz.+ https://www.wuzhuiso.com/s?q=$1 302
+# yh  xxx (油猴搜索)
+^https:\/\/bing.com\/search\?q=yh\+([^&]+).+ https://greasyfork.org/zh-CN/scripts?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+yh.+ https://greasyfork.org/zh-CN/scripts?q=$1 302 
+# gi  xxx (Google 图片)
+^https:\/\/bing.com\/search\?q=gi\+([^&]+).+ https://www.google.com/search?&tbm=isch&q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+gi.+ https://www.google.com/search?&tbm=isch&q=$1 302
+# by  xxx (必应)
+^https:\/\/bing.com\/search\?q=by\+([^&]+).+ https://www.bing.com/search?q=$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+by.+ https://www.bing.com/search?q=$1 302
+# ios  xxx (苹果应用搜索)
+^https:\/\/bing.com\/search\?q=ios\+([^&]+).+ https://www.qimai.cn/search/index/search/$1 302
+^https:\/\/bing.com\/search\?q=([^+]+)\+ios.+ https://www.qimai.cn/search/index/search/$1 302
+#     xxx （无指令默认为 Bing）
+^https:\/\/bing.com\/search\?q=([^&]+).+ https://www.bing.com/search?q=$1 302
+
+[MITM]
+hostname = %APPEND% bing.com
