@@ -1,5 +1,5 @@
 #!name=Q-Search Plus
-#!desc=Q-Search补充
+#!desc=Bing搜索重定向
 #引用自墨鱼@ddgksf2013，转换为Surge格式并加入自用重写
 [URL Rewrite]
 
