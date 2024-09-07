@@ -23,12 +23,13 @@
 ^https:\/\/.*bing.com\/search\?q=([^+]+)\+tmdb.+ https://www.themoviedb.org/search?query=$1 302
 # ng  (切换至尼日利亚区)
 ^https:\/\/.*bing.com\/search\?q=ng&.+ https://itunes.apple.com/WebObjects/MZStore.woa/wa/resetAndRedirect?dsf=143561&mt=8&url=/WebObjects/MZStore.woa/wa/viewSoftware?mt=8&id=1108187390&cc=ng&urlDesc= 302
-# pp  xxx (perplexity)
+# pp xxx (perplexity)
 ^https:\/\/.*bing.com\/search\?q=pp\+([^&]+).+ https://www.perplexity.ai/search?q=$1 302
 ^https:\/\/.*bing.com\/search\?q=([^+]+)\+pp.+ https://www.perplexity.ai/search?q=$1 302
-
+#tf (TestFlight)
+^https:\/\/duckduckgo.com\/\?q=tf(\+|%20)([^&]+).+ https://www.google.com/search?as_q=$2&as_sitesearch=testflight.apple.com 302
 #>>>>>>>>>>>>>>>>>>>>>>>翻译
-# yd  xxx (有道词典)
+# yd xxx (有道词典)
 ^https:\/\/.*bing.com\/search\?q=yd\+([^&]+).+ http://dict.youdao.com/search?q=$1 302
 ^https:\/\/.*bing.com\/search\?q=([^+]+)\+yd.+ http://dict.youdao.com/search?q=$1 302
 # trc xxx (Google 译至中)
