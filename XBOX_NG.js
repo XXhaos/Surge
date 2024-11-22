@@ -1,7 +1,7 @@
 (function() {
   try {
     let body = JSON.parse($request.body);
-
+    
     // 打印原始请求体用于调试
     console.log("Original Request Body:", body);
 
