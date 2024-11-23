@@ -1,18 +1,14 @@
-const modifyResponse = () => {
-  if ($response && $response.body) {
-    try {
-      let body = JSON.parse($response.body);
-      body.market = "NG";
-      body.locale = "en-NG";
-      body.friendlyName = "cart-NG";
-      $done({ body: JSON.stringify(body) });
-    } catch (error) {
-      console.log("Error modifying response: ", error);
-      $done({});
-    }
-  } else {
-    $done({});
-  }
-};
+let body = $request.body;
 
-modifyResponse();
+if ($request.url.includes("/v1.0/cart/loadCart")) {
+    body = JSON.parse(body);
+
+    // 修改请求体中的相关字段
+    body.market = "NG";
+    body.locale = "en-NG";
+    body.friendlyName = "cart-NG";
+
+    body = JSON.stringify(body);
+}
+
+$done({ body: body });
