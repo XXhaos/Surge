@@ -1,88 +1,15 @@
-var $util = util();
+const $ = new Env('MS Cart Region');
+let body = JSON.parse($response.body);
 
-if ($request.url.includes("store-web.dynamics.com")) {
-    if ($util.status != 200) {
-        $done({
-            status: "HTTP/1.1 200 OK",
-            headers: $response.headers,
-            body: '{"market": "NG","locale": "en-NG","friendlyName": "cart-NG"}'
-        });
-    } else {
-        $done({});
-    }
-} else {
-    $done({});
-}
+body.market = "NG";
+body.locale = "en-NG";
+body.friendlyName = "cart-NG";
 
-function util() {
-    const isRequest = typeof $request != "undefined"
-    const isSurge = typeof $httpClient != "undefined"
-    const isQuanX = typeof $task != "undefined"
-    const notify = (title, subtitle = '', message = '') => {
-        if (isQuanX) $notify(title, subtitle, message)
-        if (isSurge) $notification.post(title, subtitle, message)
-    }
-    const write = (value, key) => {
-        if (isQuanX) return $prefs.setValueForKey(value, key)
-        if (isSurge) return $persistentStore.write(value, key)
-    }
-    const read = (key) => {
-        if (isQuanX) return $prefs.valueForKey(key)
-        if (isSurge) return $persistentStore.read(key)
-    }
-    const adapterStatus = (response) => {
-        if (response) {
-            if (response.status) {
-                response["statusCode"] = response.status
-            } else if (response.statusCode) {
-                response["status"] = response.statusCode
-            }
-        }
-        return response
-    }
-    const get = (options, callback) => {
-        if (isQuanX) {
-            if (typeof options == "string") options = {
-                url: options,
-                method: "GET"
-            }
-            $task.fetch(options).then(response => {
-                callback(null, adapterStatus(response), response.body)
-            }, reason => callback(reason.error, null, null))
-        }
-        if (isSurge) $httpClient.get(options, (error, response, body) => {
-            callback(error, adapterStatus(response), body)
-        })
-    }
-    const post = (options, callback) => {
-        if (isQuanX) {
-            if (typeof options == "string") options = {
-                url: options,
-                method: "POST"
-            }
-            $task.fetch(options).then(response => {
-                callback(null, adapterStatus(response), response.body)
-            }, reason => callback(reason.error, null, null))
-        }
-        if (isSurge) {
-            $httpClient.post(options, (error, response, body) => {
-                callback(error, adapterStatus(response), body)
-            })
-        }
-    }
-    const done = (value = {}) => {
-        if (isQuanX) return $done(value)
-        if (isSurge) isRequest ? $done(value) : $done()
-    }
-    const status = isQuanX ? $response.statusCode : $response.status
-    return {
-        isRequest,
-        notify,
-        write,
-        read,
-        get,
-        post,
-        done,
-        status
-    }
+$done({ 
+    body: JSON.stringify(body),
+    headers: $response.headers,
+    status: $response.status
+});
+
+function Env(t,e){class s{constructor(t){this.env=t}send(t,e="GET"){t="string"==typeof t?{url:t}:t;let s=this.get;return"POST"===e&&(s=this.post),new Promise((e,a)=>{s.call(this,t,(t,s,r)=>{t?a(t):e(s)})})}get(t){return this.send.call(this.env,t)}post(t){return this.send.call(this.env,t,"POST")}}return new class{constructor(t,e){this.name=t,this.http=new s(this),this.data=null,this.dataFile="box.dat",this.logs=[],this.isMute=!1,this.isNeedRewrite=!1,this.logSeparator="\n",this.encoding="utf-8",Object.assign(this,e)}};
 }
