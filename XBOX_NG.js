@@ -1,14 +1,10 @@
-let body = $response.body;
-
-if($request.url.includes("cart.production.store-web.dynamics.com/v1.0/cart/loadCart"))
-{
-    body = 
-    `
-    {"market": "NG","locale": "en-NG","friendlyName": "cart-NG"}
-    `
+if($request.url.includes("dynamics.com")) {
+    $done({ 
+        response: {
+            status: 200,
+            body: `{"market": "NG","locale": "en-NG","friendlyName": "cart-NG"}`
+        }
+    });
+} else {
+    $done({});
 }
-
-$done({
-    status: 200,
-    body: body
-});
