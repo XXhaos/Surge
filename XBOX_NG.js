@@ -1,8 +1,12 @@
-let body = $request.body;
+let body = JSON.parse($response.body);
 
-// 使用正则替换特定的字段值
-body = body.replace(/\"market\":\"[^\"]+\"/g, '\"market\":\"NG\"');
-body = body.replace(/\"locale\":\"[^\"]+\"/g, '\"locale\":\"en-NG\"');
-body = body.replace(/\"friendlyName\":\"[^\"]+\"/g, '\"friendlyName\":\"cart-NG\"');
+// 修改指定字段的值
+body.market = "NG";
+body.locale = "en-NG";
+body.friendlyName = "cart-NG";
 
-$done({ body });
+// 将修改后的对象转换回 JSON 字符串
+let modifiedBody = JSON.stringify(body);
+
+// 返回修改后的响应
+$done({ body: modifiedBody });
