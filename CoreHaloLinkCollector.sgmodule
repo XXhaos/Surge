@@ -1,4 +1,4 @@
-#!name=CoreHalo Link Collector (Remote, no RULE section)
+#!name=CoreHalo Link Collector
 #!desc=Capture Xianyu/Goofish redirected corehalo links, store them, and expose them at http://corehalo.dump/fetch for Shortcuts
 #!author=you
 #!version=1.3
