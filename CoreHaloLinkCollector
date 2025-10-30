@@ -1,0 +1,35 @@
+#!name=CoreHalo Link Collector
+#!desc=Capture corehalo redirect links from Xianyu/Goofish and expose them to Shortcuts
+#!author=you
+#!version=1.0
+
+[General]
+# 无特殊 General 配置，这里留空
+
+[MITM]
+# 抓跳转请求时需要能解密这个域名的 HTTPS
+hostname = %APPEND% h5.m.goofish.com
+
+[Script]
+# 1. 捕获并保存真实链接
+#  - 当闲鱼/闲鱼国际发起带 reminderUrl= 的跳转请求时触发
+#  - 从 URL 中提取 reminderUrl= 后的部分 (URL encoded)
+#  - decode 后写进 $persistentStore["corehalo_links"]
+corehalo-capture = type=http-request,pattern=https?://h5\.m\.goofish\.com/.*reminderUrl=.+,requires-body=0,timeout=5,script-path=corehalo_capture.js
+
+# 2. 输出/清空链接列表
+#  - 当访问 http://corehalo.local/fetch 时触发
+#  - 返回 JSON 数组 (["https://app.corehalo.com/....", ...])
+#  - 清空存储，避免重复
+corehalo-dump = type=http-request,pattern=http://corehalo\.local/fetch,requires-body=0,timeout=5,script-path=corehalo_dump.js
+
+
+[Rule]
+# 如果你的 Surge 版本需要 Rule 才会触发脚本，保留以下规则；
+# 如果你的 Surge 版本是新版本，http-request + pattern 已足够，这些可以不写，但留着没坏处。
+
+# 把 goofish 的域名请求交给 corehalo-capture
+SCRIPT,DOMAIN-SUFFIX,h5.m.goofish.com,corehalo-capture
+
+# 把我们自定义的 fake 域名交给 corehalo-dump
+SCRIPT,DOMAIN-SUFFIX,corehalo.local,corehalo-dump
