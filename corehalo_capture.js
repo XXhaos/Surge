@@ -1,20 +1,22 @@
 // corehalo_capture.js
 //
-// 触发条件：请求 URL 匹配  h5.m.goofish.com/...reminderUrl=...
-// 目标：把 reminderUrl= 后面编码过的真实目标链接 decode 出来
-//      然后 append 到 $persistentStore["corehalo_links"]
+// 触发：请求 URL 匹配 h5.m.goofish.com/...reminderUrl=...
+// 逻辑：
+//  1. 从 $request.url 提取 reminderUrl= 后的编码串
+//  2. decodeURIComponent -> 真正目标链接 realLink
+//  3. 保存到 persistentStore("corehalo_links")
+//  4. 发通知，提示捕获到了什么
 
 let reqUrl = $request && $request.url ? $request.url : "";
 
-// 提取 reminderUrl= 后面的编码值
-// 比如 ...reminderUrl=https%3A%2F%2Fapp.corehalo.com%2Fms%2Flink%2Fgo%3Fid%3D69098%26r%3Den-ng&titleVisible=false
+// 提取 reminderUrl= 后面的编码内容
 let m = reqUrl.match(/reminderUrl=([^&]+)/);
 
 if (m && m[1]) {
-  // decode 成真正要打开的外链
+  // decode 出真实外链
   let realLink = decodeURIComponent(m[1]);
 
-  // 读取已有列表
+  // 从持久化存储读现有列表
   let raw = $persistentStore.read("corehalo_links") || "[]";
   let list;
   try {
@@ -26,14 +28,24 @@ if (m && m[1]) {
     list = [];
   }
 
-  // 去重后追加
+  // 去重后推入
+  let added = false;
   if (!list.includes(realLink)) {
     list.push(realLink);
+    $persistentStore.write(JSON.stringify(list), "corehalo_links");
+    added = true;
   }
 
-  // 写回持久化存储
-  $persistentStore.write(JSON.stringify(list), "corehalo_links");
+  // 给你发一条通知，告诉你本次抓到的情况
+  // 标题：CoreHalo Capture
+  // 副标题：Added / Duplicate
+  // 正文：具体链接
+  $notification.post(
+    "CoreHalo Capture",
+    added ? "Added to list" : "Already in list",
+    realLink
+  );
 }
 
-// 放行请求，不做拦截修改
+// 放行原始请求
 $done({});
