@@ -1,35 +1,36 @@
-#!name=CoreHalo Link Collector
-#!desc=Capture corehalo redirect links from Xianyu/Goofish and expose them to Shortcuts
+#!name=CoreHalo Link Collector (Remote)
+#!desc=Capture corehalo redirect links from Xianyu/Goofish and expose them to iOS Shortcuts via local endpoint
 #!author=you
-#!version=1.0
-
-[General]
-# 无特殊 General 配置，这里留空
+#!version=1.1
+#!homepage=https://github.com/XXhaos/Surge
 
 [MITM]
-# 抓跳转请求时需要能解密这个域名的 HTTPS
+# 需要对 goofish 域名做 MITM 才能读取 reminderUrl
+# 如果后续发现闲鱼/咸鱼还会打到别的域名（比如 h5.m.taobao.com），把它们也加进来
 hostname = %APPEND% h5.m.goofish.com
 
 [Script]
-# 1. 捕获并保存真实链接
-#  - 当闲鱼/闲鱼国际发起带 reminderUrl= 的跳转请求时触发
-#  - 从 URL 中提取 reminderUrl= 后的部分 (URL encoded)
-#  - decode 后写进 $persistentStore["corehalo_links"]
-corehalo-capture = type=http-request,pattern=https?://h5\.m\.goofish\.com/.*reminderUrl=.+,requires-body=0,timeout=5,script-path=corehalo_capture.js
+# ---------
+# 1. capture：拦截闲鱼的跳转请求，提取 realLink 并存入 persistentStore("corehalo_links")
+#    触发时机：当 URL 里出现 reminderUrl=...
+# ---------
+corehalo-capture = type=http-request,pattern=https?://h5\.m\.goofish\.com/.*reminderUrl=.+,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_capture.js
 
-# 2. 输出/清空链接列表
-#  - 当访问 http://corehalo.local/fetch 时触发
-#  - 返回 JSON 数组 (["https://app.corehalo.com/....", ...])
-#  - 清空存储，避免重复
-corehalo-dump = type=http-request,pattern=http://corehalo\.local/fetch,requires-body=0,timeout=5,script-path=corehalo_dump.js
-
+# ---------
+# 2. dump：暴露一个本地 API http://corehalo.local/fetch
+#    返回目前收集到的链接列表(JSON数组)，并清空（或按脚本逻辑处理）
+#    这个接口给快捷指令/浏览器来拉
+# ---------
+corehalo-dump = type=http-request,pattern=http://corehalo\.local/fetch,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_dump.js
 
 [Rule]
-# 如果你的 Surge 版本需要 Rule 才会触发脚本，保留以下规则；
-# 如果你的 Surge 版本是新版本，http-request + pattern 已足够，这些可以不写，但留着没坏处。
+# 说明：
+# - 某些 Surge 版本在有 type=http-request+pattern 时已经可以直接触发脚本
+#   但为了保险，这里仍写上 SCRIPT 规则把相关域名指向对应脚本。
+# - 如果你测试后发现重复触发、或你的 Surge 版本报冲突，可尝试把这两条 Rule 注释掉。
 
-# 把 goofish 的域名请求交给 corehalo-capture
+# goofish 域名 -> 捕获脚本
 SCRIPT,DOMAIN-SUFFIX,h5.m.goofish.com,corehalo-capture
 
-# 把我们自定义的 fake 域名交给 corehalo-dump
+# 我们自定义的 fake 域名，用来从 persistentStore 里取链接
 SCRIPT,DOMAIN-SUFFIX,corehalo.local,corehalo-dump
