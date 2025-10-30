@@ -1,34 +1,31 @@
-#!name=CoreHalo Link Collector (Remote)
-#!desc=Capture corehalo redirect links from Xianyu/Goofish and expose them to iOS Shortcuts via local endpoint
+#!name=CoreHalo Link Collector (Remote, no RULE section)
+#!desc=Capture Xianyu/Goofish redirected corehalo links, store them, and expose them at http://corehalo.dump/fetch for Shortcuts
 #!author=you
-#!version=1.1
+#!version=1.3
 #!homepage=https://github.com/XXhaos/Surge
 
 [MITM]
-hostname = %APPEND% h5.m.goofish.com
+ hostname = *
+
+[Host]
+# 让 iOS 能解析我们自定义的导出域名
+# Safari / 快捷指令访问 http://corehalo.dump/fetch 时
+# 这个域会被解析到 198.18.0.1，这样系统会真的发 HTTP 请求
+# 请求一发出，Surge 的 http-request 脚本就能截下来并自定义返回
+corehalo.dump = 198.18.0.1
 
 [Script]
-# ---------
-# 1. capture：拦截闲鱼的跳转请求，提取 realLink 并存入 persistentStore("corehalo_links")
-#    触发时机：当 URL 里出现 reminderUrl=...
-# ---------
+# 1. 捕获脚本
+#    - 触发条件：任意请求 URL 匹配 pattern
+#    - 工作内容：从请求 URL 里提取 reminderUrl=... 的真实外链
+#                  decodeURIComponent 之后写入 persistentStore("corehalo_links")
+#    - 并用 $notification.post() 通知你抓到了什么
 corehalo-capture = type=http-request,pattern=https?://h5\.m\.goofish\.com/.*reminderUrl=.+,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_capture.js
 
-# ---------
-# 2. dump：暴露一个本地 API http://corehalo.local/fetch
-#    返回目前收集到的链接列表(JSON数组)，并清空（或按脚本逻辑处理）
-#    这个接口给快捷指令/浏览器来拉
-# ---------
-corehalo-dump = type=http-request,pattern=http://corehalo\.local/fetch,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_dump.js
-
-[Rule]
-# 说明：
-# - 某些 Surge 版本在有 type=http-request+pattern 时已经可以直接触发脚本
-#   但为了保险，这里仍写上 SCRIPT 规则把相关域名指向对应脚本。
-# - 如果你测试后发现重复触发、或你的 Surge 版本报冲突，可尝试把这两条 Rule 注释掉。
-
-# goofish 域名 -> 捕获脚本
-SCRIPT,DOMAIN-SUFFIX,h5.m.goofish.com,corehalo-capture
-
-# 我们自定义的 fake 域名，用来从 persistentStore 里取链接
-SCRIPT,DOMAIN-SUFFIX,corehalo.local,corehalo-dump
+# 2. 导出脚本
+#    - 触发条件：你（或快捷指令/Safari）访问 http://corehalo.dump/fetch
+#    - 工作内容：从 persistentStore("corehalo_links") 读出所有累积的链接
+#                  用 HTTP 200 + JSON 数组形式返回给客户端
+#                  (默认再清空列表，防止重复)
+#    - 同时用 $notification.post() 给你一个“Dump: N条”的可见提示
+corehalo-dump = type=http-request,pattern=http://corehalo\.dump/fetch,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_dump.js
