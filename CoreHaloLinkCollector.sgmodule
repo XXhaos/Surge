@@ -3,6 +3,7 @@
 #!author=you
 #!version=1.3
 #!homepage=https://github.com/XXhaos/Surge
+#Turn on mitm = * When use this module
 
 [Host]
 # 让 iOS 能解析我们自定义的导出域名
