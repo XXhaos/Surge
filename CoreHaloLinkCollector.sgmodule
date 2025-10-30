@@ -5,8 +5,6 @@
 #!homepage=https://github.com/XXhaos/Surge
 
 [MITM]
-# 需要对 goofish 域名做 MITM 才能读取 reminderUrl
-# 如果后续发现闲鱼/咸鱼还会打到别的域名（比如 h5.m.taobao.com），把它们也加进来
 hostname = %APPEND% h5.m.goofish.com
 
 [Script]
