@@ -1,5 +1,6 @@
 #!name=AddToCart Auto Trigger
 #!desc=进入 addtocard.com 自动执行 NewAddToCart.js（核心脚本不改）
+#!category=XBOX
 #!system=ios
 
 [MITM]
