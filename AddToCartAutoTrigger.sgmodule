@@ -1,12 +1,14 @@
-#!name=AddToCart Auto Trigger
-#!desc=进入 addtocart.com 自动执行 NewAddToCart.js（核心脚本不改）
+#!name=AddToCart Visual Auto Trigger
+#!desc=进入 add_to_cart.com：后台执行 NewAddToCart.js 并在网页浮窗显示结果
 #!category=XBOX
 #!system=ios
 
 [MITM]
-# 覆盖根域与所有子域（有些浏览器会先走 www）
-hostname = %APPEND% addtocart.com, *.addtocart.com
+hostname = %APPEND% add_to_cart.com, *.add_to_cart.com, www.add_to_cart.com
 
 [Script]
-# 命中根域或 www 即触发；你要更严格可把 (?:\/|$) 换成 \/?$
-addtocart-autorun = type=http-request,pattern=^https?:\/\/(?:www\.)?addtocart\.com(?:\/|$),requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/TriggerAddToCart.js
+# 1) 进入 add_to_cart.com 任意页面即触发（后台执行，页面不阻塞）
+atc-autorun = type=http-request,pattern=^https?:\/\/(?:www\.)?add_to_cart\.com(?:\/|$),requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/ATC_Trigger.js
+
+# 2) 仅对 HTML 响应注入一个结果浮窗
+atc-overlay = type=http-response,pattern=^https?:\/\/(?:www\.)?add_to_cart\.com(?:\/|$),requires-body=1,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/ATC_Overlay.js
