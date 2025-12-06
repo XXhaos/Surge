@@ -1,7 +1,7 @@
 #!name=Xbox Cart Web
 #!desc=访问 https://addtocart.com 触发远程脚本
 #!author=Ah Long
-#!category=Xbox
+#!category=XBOX
 
 [Host]
 # 核心：将 addtocart.com 解析到 Surge 内部 IP
