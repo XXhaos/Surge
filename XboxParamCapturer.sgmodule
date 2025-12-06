@@ -1,21 +1,19 @@
 #!name=Xbox Param Capturer
-#!desc=抓取 Xbox 商品参数、Authorization、CartId、MUID 及 MS-CV
+#!desc=抓取 Xbox 商品参数 (仅 en-us)、Auth、CartId、MUID
 #!author=Ah Long
 #!category=XBOX
 
 [Script]
 # 1. 抓 Product 参数 (Response)
-# 对应域名: emerald.xboxservices.com
-XboxProductList = type=http-response, pattern=(?i)^https:\/\/emerald\.xboxservices\.com\/xboxcomfd\/productActions\/.*(?:\?|&)locale=en-us(?:&|$), requires-body=1, max-size=0, timeout=60, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/XboxProductList.js
+# 严格保留了你的 (?i)...locale=en-us 正则
+XboxProductList = type=http-response, pattern=(?i)^https:\/\/emerald\.xboxservices\.com\/xboxcomfd\/productActions\/.*(?:\?|&)locale=en-us(?:&|$), requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/XboxProductList.js
 
 # 2. 获取 Authorization & CartId (Request)
-# 对应域名: cart.production.store-web.dynamics.com
-Xbox_Auth_CartId = type=http-request, pattern=^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/eligibilityCheck\?, requires-body=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/authorization%26cartId.js
+Xbox_Auth_CartId = type=http-request, pattern=^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/eligibilityCheck\?, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/authorization%26cartId.js
 
 # 3. 获取 MS-CV & MUID & VectorId (Request)
-# 对应域名: cart.production.store-web.dynamics.com
-Xbox_Mscv_MUID = type=http-request, pattern=^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/cart\/loadCart\?, requires-body=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/CartMscv%26MUID%26VectorId.js
+Xbox_Mscv_MUID = type=http-request, pattern=^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/cart\/loadCart\?, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/CartMscv%26MUID%26VectorId.js
 
 [MITM]
-# 必须包含这两个域名才能解密并触发脚本
+# 确保 emerald 域名被包含
 hostname = %APPEND% emerald.xboxservices.com, cart.production.store-web.dynamics.com
