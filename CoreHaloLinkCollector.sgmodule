@@ -1,30 +1,24 @@
-#!name=CoreHalo Link Collector
-#!desc=Capture Xianyu/Goofish redirected corehalo links, store them, and expose them at http://corehalo.dump/fetch for Shortcuts
-#!author=you
+#!name=CoreHalo Link Collector (HTTPS)
+#!desc=Capture Xianyu/Goofish links, expose at https://corehalo.dump/
+#!author=Ah Long
 #!category=XBOX
-#!version=1.3
+#!version=1.4
 #!homepage=https://github.com/XXhaos/Surge
-#Turn on mitm = * When use this module
 
 [Host]
-# 让 iOS 能解析我们自定义的导出域名
-# Safari / 快捷指令访问 http://corehalo.dump/fetch 时
-# 这个域会被解析到 198.18.0.1，这样系统会真的发 HTTP 请求
-# 请求一发出，Surge 的 http-request 脚本就能截下来并自定义返回
+# 将 corehalo.dump 解析到 Surge 虚拟 IP
 corehalo.dump = 198.18.0.1
 
 [Script]
-# 1. 捕获脚本
-#    - 触发条件：任意请求 URL 匹配 pattern
-#    - 工作内容：从请求 URL 里提取 reminderUrl=... 的真实外链
-#                  decodeURIComponent 之后写入 persistentStore("corehalo_links")
-#    - 并用 $notification.post() 通知你抓到了什么
-corehalo-capture = type=http-request,pattern=https?://h5\.m\.goofish\.com/.*reminderUrl=.+,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_capture.js
+# 1. 捕获脚本 (保持原样，匹配闲鱼域名)
+corehalo-capture = type=http-request, pattern=https?://h5\.m\.goofish\.com/.*reminderUrl=.+, requires-body=0, timeout=5, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_capture.js
 
-# 2. 导出脚本
-#    - 触发条件：你（或快捷指令/Safari）访问 http://corehalo.dump/fetch
-#    - 工作内容：从 persistentStore("corehalo_links") 读出所有累积的链接
-#                  用 HTTP 200 + JSON 数组形式返回给客户端
-#                  (默认再清空列表，防止重复)
-#    - 同时用 $notification.post() 给你一个“Dump: N条”的可见提示
-corehalo-dump = type=http-request,pattern=http://corehalo\.dump/fetch,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_dump.js
+# 2. 导出脚本 (修改点)
+# - 正则改为匹配 https://corehalo.dump/ (兼容 http)
+# - 去掉了 fetch 路径，匹配根路径
+corehalo-dump = type=http-request, pattern=^https?://corehalo\.dump/?$, requires-body=0, timeout=5, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/corehalo_dump.js
+
+[MITM]
+# 必须包含 corehalo.dump 才能解密 HTTPS 流量
+# 同时也需要包含闲鱼域名(h5.m.goofish.com)以确保捕获功能正常
+hostname = %APPEND% corehalo.dump, h5.m.goofish.com
