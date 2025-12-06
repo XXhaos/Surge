@@ -1,26 +1,15 @@
-#!name=AddToCart Visual Collector
-#!desc=Visit add_to_cart.com to auto-run NewAddToCart.js; show results at http://addtocart.dump/
-#!author=you
+#!name=Xbox Cart Trigger
+#!desc=访问 add_to_cart.com 时执行 Xbox 加购脚本
 #!category=XBOX
-#!version=1.0
-#!homepage=https://github.com/XXhaos/Surge
-# NOTE: install & trust Surge CA
 
-[Host]
-# 本地“展示域名”，用于在浏览器/快捷指令里打开查看页面
-addtocart.dump = 198.18.0.1
-
-[MITM]
-# 触发运行用的域名（你前面说要唯一：add_to_cart.com）
-hostname = %APPEND% add_to_cart.com, *.add_to_cart.com, www.add_to_cart.com
+[General]
+# 强制让 Surge 处理这个假域名的 HTTP 请求
+force-http-engine-hosts = %APPEND% add_to_cart.com
 
 [Script]
-# 1) 进入 add_to_cart.com 即触发（后台执行，不阻塞）
-#    —— 触发器会拉取并 eval 你的 NewAddToCart.js，同时把通知写入持久化日志
-atc-autorun = type=http-request,pattern=^https?:\/\/(?:www\.)?add_to_cart\.com(?:\/|$),requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/ATC_Trigger.js
+# 注意：script-path 需要指向你实际保存 JS 文件的路径
+Xbox_Add_Cart = type=http-request, pattern=^http://add_to_cart\.com/?$, script-path=NewAddToCart_Web.js, timeout=60
 
-# 2) 在 http://addtocart.dump/ 查看结果（HTML 页）
-#    - /            → HTML 页面（自动读取并渲染日志）
-#    - /clear       → 清空日志并返回提示
-#    - /json        → 返回 JSON 日志（给快捷指令/其它工具用）
-atc-dump = type=http-request,pattern=http://addtocart\.dump(?:/(?:json|clear)?)?$,requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/ATC_Dump.js
+[MITM]
+# 只需要拦截 HTTP，不需要 HTTPS 解密，因为这是个假域名
+hostname = %APPEND% add_
