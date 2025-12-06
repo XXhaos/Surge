@@ -1,7 +1,7 @@
 #!name=Xbox Cart Web (HTTPS)
 #!desc=访问 https://add_to_cart.com 触发远程脚本
 #!author=Ah Long
-#!category=Xbox
+#!category=XBOX
 
 [Host]
 # 确保域名解析到 Surge 虚拟 IP
