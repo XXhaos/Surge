@@ -1,11 +1,10 @@
 #!name=AddToCart Auto Trigger
-#!desc=进入 addtocard.com 自动执行 NewAddToCart.js（核心脚本不改）
-#!category=XBOX
+#!desc=进入 addtocart.com 自动执行 NewAddToCart.js（核心脚本不改）
 #!system=ios
 
 [MITM]
-hostname = %APPEND% addtocard.com, www.addtocard.com
+hostname = %APPEND% addtocart.com, www.addtocart.com
 
 [Script]
-# 命中 addtocard.com 任意页面即触发（5s超时可按需调整）
-addtocard-autorun = type=http-request,pattern=^https?:\/\/(?:www\.)?addtocard\.com(?:\/|$),requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/TriggerAddToCart.js
+# 命中 addtocart.com 任意页面即触发（5s 超时可按需调整）
+addtocart-autorun = type=http-request,pattern=^https?:\/\/(?:www\.)?addtocart\.com(?:\/|$),requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/TriggerAddToCart.js
