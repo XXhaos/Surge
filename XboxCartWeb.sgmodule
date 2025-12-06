@@ -1,22 +1,16 @@
-#!name=Xbox Cart Web (HTTPS Fix)
+#!name=Xbox Cart Web (HTTPS)
 #!desc=访问 https://add_to_cart.com 触发远程脚本
 #!author=Ah Long
 #!category=Xbox
 
-[General]
-# 【关键】强制让 Surge 的 HTTP 引擎接管这个域名
-# 这样 Surge 就不会去尝试连接真实的互联网服务器，而是直接运行脚本
-force-http-engine-hosts = %APPEND% add_to_cart.com
-
 [Host]
-# 双重保险，确保 DNS 解析指向 Surge 内部
+# 确保域名解析到 Surge 虚拟 IP
 add_to_cart.com = 198.18.0.1
 
 [Script]
-# 正则匹配 https (同时也兼容 http)
-# 脚本路径指向你的 GitHub
-xbox_web_runner = type=http-request, pattern=^https?://add_to_cart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js, timeout=60
+# 正则改为匹配 https 开头
+xbox_web_runner = type=http-request, pattern=^https://add_to_cart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js, timeout=60
 
 [MITM]
-# 开启解密，这样才能看到 HTTPS 请求的内容并执行脚本
+# 必须包含此 hostname，Surge 才能解密 HTTPS 并注入脚本
 hostname = %APPEND% add_to_cart.com
