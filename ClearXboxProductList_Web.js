@@ -1,6 +1,6 @@
 /*
  * Surge 脚本：清空 XboxProductList
- * 功能：1. 清空数据 2. 网页显示结果 3. 系统弹窗通知
+ * 功能：1. 清空数据 2. 系统弹窗 3. 网页显示纯净结果
  * 触发地址：http://clear_list.com
  */
 
@@ -12,10 +12,10 @@ $persistentStore.write("{}", key);
 // 2. 控制台日志
 console.log("✅ 操作成功 - 已清空 XboxProductList");
 
-// 3. 【新增】发送系统通知 (这里是你想要弹窗的关键)
+// 3. 发送系统通知 (手机顶部依然会弹窗)
 $notification.post("🗑️ 清单已清空", "操作成功", "XboxProductList 已重置为空对象");
 
-// 4. 生成网页 HTML
+// 4. 生成网页 HTML (去掉了提示文字)
 const html = `
 <!DOCTYPE html>
 <html>
@@ -34,7 +34,6 @@ const html = `
     <div class="card">
         <h1>✅ 操作成功</h1>
         <p>XboxProductList 已被清空</p>
-        <p style="font-size:12px; color:#999; margin-top:10px;">(系统通知已发送)</p>
     </div>
 </body>
 </html>`;
