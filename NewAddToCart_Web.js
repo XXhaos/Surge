@@ -46,7 +46,9 @@ const HEADERS = { "content-type": "application/json", "accept": "*/*", "x-author
 
 function finalizeAndClean() {
   const successCount = results.success.length;
+  const failureCount = results.failure.length;
   let remainingCount = 0;
+  
   try {
     let storeObj; try { storeObj = JSON.parse($persistentStore.read("XboxProductList") || "{}"); } catch { storeObj = {}; }
     for (const k of successKeys) if (k && Object.prototype.hasOwnProperty.call(storeObj, k)) delete storeObj[k];
@@ -54,6 +56,13 @@ function finalizeAndClean() {
     $persistentStore.write(JSON.stringify(storeObj), "XboxProductList");
     log("info", "清理完成", `剩余: ${remainingCount}`);
   } catch (e) { log("error", "清理异常", e); }
+
+  // 【新增】发送系统通知
+  $notification.post(
+    "🛒 Xbox 加购完成",
+    `成功: ${successCount} / 失败: ${failureCount}`,
+    `剩余库存: ${remainingCount}`
+  );
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Xbox Cart</title></head><body style="font-family:sans-serif;padding:20px;"><h3>执行结果: 成功 ${successCount} / 剩余 ${remainingCount}</h3><div style="background:#f9f9f9;padding:10px;">${logBuffer.join("")}</div></body></html>`;
   
@@ -76,6 +85,18 @@ function sendRequest() {
   });
 }
 
-if (!MUID || !MS_CV) { log("error", "缺少 MUID/CV"); finalizeAndClean(); }
-else if (productList.length === 0) { log("info", "列表为空"); finalizeAndClean(); }
-else { log("info", "开始任务", `数量: ${productList.length}`); sendRequest(); }
+if (!MUID || !MS_CV) { 
+    log("error", "缺少 MUID/CV"); 
+    // 即使配置错误也发个通知提醒你
+    $notification.post("❌ Xbox 脚本错误", "缺少必要参数", "请检查 MUID 或 MS_CV");
+    finalizeAndClean(); 
+}
+else if (productList.length === 0) { 
+    log("info", "列表为空"); 
+    $notification.post("⚠️ Xbox 脚本", "无需执行", "列表为空");
+    finalizeAndClean(); 
+}
+else { 
+    log("info", "开始任务", `数量: ${productList.length}`); 
+    sendRequest(); 
+}
