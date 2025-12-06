@@ -4,8 +4,9 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% addtocart.com, www.addtocart.com
+# 覆盖根域与所有子域（有些浏览器会先走 www）
+hostname = %APPEND% addtocart.com, *.addtocart.com
 
 [Script]
-# 命中 addtocart.com 任意页面即触发（5s 超时可按需调整）
+# 命中根域或 www 即触发；你要更严格可把 (?:\/|$) 换成 \/?$
 addtocart-autorun = type=http-request,pattern=^https?:\/\/(?:www\.)?addtocart\.com(?:\/|$),requires-body=0,timeout=5,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/TriggerAddToCart.js
