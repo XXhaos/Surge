@@ -1,0 +1,17 @@
+#!name=Xbox Cart Web
+#!desc=访问 http://add_to_cart.com 触发远程脚本
+#!author=Ah Long
+#!category=XBOX
+
+[Host]
+# 将假域名解析到 Surge 虚拟 IP，确保请求一定会被 Surge 捕获
+add_to_cart.com = 198.18.0.1
+
+[Script]
+# 脚本路径指向你的 GitHub 链接
+# timeout 设置为 60 秒，防止商品太多处理超时
+xbox_web_runner = type=http-request, pattern=http://add_to_cart\.com/?$, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js, timeout=60
+
+[MITM]
+# 必须包含此 hostname 才能进行脚本拦截
+hostname = %APPEND% add_to_cart.com
