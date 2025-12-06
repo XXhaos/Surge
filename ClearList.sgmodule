@@ -1,0 +1,16 @@
+#!name=Xbox Clear List Web
+#!desc=访问 http://clear_list.com 清空 XboxProductList
+#!author=Ah Long
+#!category=XBOX
+
+[Host]
+# 将域名劫持到 Surge 虚拟 IP，确保请求被拦截
+clear_list.com = 198.18.0.1
+
+[Script]
+# 访问 clear_list.com 触发清空脚本
+# 请确保 script-path 指向上面那个修改后的 JS 文件
+xbox_clear_web = type=http-request, pattern=http://clear_list\.com/?$, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/ClearXboxProductList_Web.js, timeout=10
+
+[MITM]
+hostname = %APPEND% clear_list.com
