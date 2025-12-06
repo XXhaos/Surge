@@ -1,6 +1,7 @@
 #!name=CoreHalo Link Collector
 #!desc=Capture Xianyu/Goofish redirected corehalo links, store them, and expose them at http://corehalo.dump/fetch for Shortcuts
 #!author=you
+#!category=XBOX
 #!version=1.3
 #!homepage=https://github.com/XXhaos/Surge
 #Turn on mitm = * When use this module
