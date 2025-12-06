@@ -1,16 +1,17 @@
-#!name=Xbox Cart Web (HTTPS)
-#!desc=访问 https://add_to_cart.com 触发远程脚本
+#!name=Xbox Cart Web
+#!desc=访问 https://addtocart.com 触发远程脚本
 #!author=Ah Long
-#!category=XBOX
+#!category=Xbox
 
 [Host]
-# 确保域名解析到 Surge 虚拟 IP
-add_to_cart.com = 198.18.0.1
+# 核心：将 addtocart.com 解析到 Surge 内部 IP
+# 这样手机发出的请求会被 Surge 直接截获，不会去公网找服务器
+addtocart.com = 198.18.0.1
 
 [Script]
-# 正则改为匹配 https 开头
-xbox_web_runner = type=http-request, pattern=^https://add_to_cart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js, timeout=60
+# 正则匹配：支持 http 和 https，域名为 addtocart.com
+xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js, timeout=60
 
 [MITM]
-# 必须包含此 hostname，Surge 才能解密 HTTPS 并注入脚本
-hostname = %APPEND% add_to_cart.com
+# 必须开启，用于解密 HTTPS 流量
+hostname = %APPEND% addtocart.com
