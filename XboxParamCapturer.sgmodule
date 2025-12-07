@@ -21,5 +21,4 @@ Xbox_Mscv_MUID = type=http-request, pattern=^https:\/\/cart\.production\.store-w
 ^https:\/\/emerald\.xboxservices\.com\/xboxcomfd\/productActions\/ header-del If-None-Match
 
 [MITM]
-# 必须包含
-hostname = %APPEND% emerald.xboxservices.com, cart.production.store-web.dynamics.com
+hostname = %APPEND% emerald.xboxservices.com, *.dynamics.com
