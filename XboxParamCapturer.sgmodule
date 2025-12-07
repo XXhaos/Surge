@@ -1,24 +1,26 @@
-#!name=Xbox Param Capturer (Strict & Debug)
-#!desc=抓取 Xbox en-us 参数，含防缓存和调试功能
+#!name=Xbox Param Capturer (Robust)
+#!desc=抓取 Xbox 参数 (全区/防缓存/忽略大小写)
 #!author=Ah Long
 #!category=XBOX
 
 [Script]
 # 1. 抓 Product 参数 (Response)
-# 注意：script-path 指向你更新了 Debug 代码的地址
-XboxProductList = type=http-response, pattern=(?i)^https:\/\/emerald\.xboxservices\.com\/xboxcomfd\/productActions\/.*(?:\?|&)locale=en-us(?:&|$), requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/XboxProductList.js
+# 修复：优化正则写法，忽略大小写
+XboxProductList = type=http-response, pattern=(?i)^https://emerald\.xboxservices\.com/xboxcomfd/productActions/.*locale=en-us, requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/XboxProductList.js
 
 # 2. 获取 Authorization & CartId
-Xbox_Auth_CartId = type=http-request, pattern=^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/eligibilityCheck\?, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/authorization%26cartId.js
+# 修复：加上 (?i) 忽略 Cart/cart 大小写，去掉强制结尾的 \?
+Xbox_Auth_CartId = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/eligibilityCheck, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/authorization%26cartId.js
 
 # 3. 获取 MS-CV & MUID
-Xbox_Mscv_MUID = type=http-request, pattern=^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/cart\/loadCart\?, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/CartMscv%26MUID%26VectorId.js
+# 修复：加上 (?i) 忽略大小写
+Xbox_Mscv_MUID = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/loadCart, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/CartMscv%26MUID%26VectorId.js
 
 [Header Rewrite]
-# 【核心功能】删除 emerald 域名的协商缓存头
-# 防止出现 HTTP 304 导致脚本无法获取 Body
-^https:\/\/emerald\.xboxservices\.com\/xboxcomfd\/productActions\/ header-del If-Modified-Since
-^https:\/\/emerald\.xboxservices\.com\/xboxcomfd\/productActions\/ header-del If-None-Match
+# 【防缓存】强制删除 emerald 域名的协商缓存头
+# 修复：简化正则，确保匹配命中
+^https://emerald\.xboxservices\.com/xboxcomfd/productActions/ header-del If-Modified-Since
+^https://emerald\.xboxservices\.com/xboxcomfd/productActions/ header-del If-None-Match
 
 [MITM]
 hostname = %APPEND% emerald.xboxservices.com, *.dynamics.com
