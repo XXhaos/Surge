@@ -3,7 +3,7 @@
 #!category=XBOX
 #!author=Ah Long
 
-https://ahrefs.com/writing-tools/paragraph-rewriter
+[URL Rewrite]
 # 1. Microsoft Store 旧链接 -> Xbox Store 新链接
 # 提取商品 ID 并跳转到 xbox.com
 (?i)^https?:\/\/(?:www\.)?microsoft\.com\/en-us\/store\/.*?([a-z0-9]{12})(?:[\/\?#]|$) https://www.xbox.com/en-us/games/store/corehalo/$1 302
