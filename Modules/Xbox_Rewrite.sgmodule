@@ -1,0 +1,20 @@
+#!name=Xbox Rewrite Collection
+#!desc=Win 商店链接重定向 & 强制锁美区 (保留阿根廷区)
+#!category=XBOX
+#!author=Ah Long
+
+https://ahrefs.com/writing-tools/paragraph-rewriter
+# 1. Microsoft Store 旧链接 -> Xbox Store 新链接
+# 提取商品 ID 并跳转到 xbox.com
+(?i)^https?:\/\/(?:www\.)?microsoft\.com\/en-us\/store\/.*?([a-z0-9]{12})(?:[\/\?#]|$) https://www.xbox.com/en-us/games/store/corehalo/$1 302
+
+# 2. Xbox 官网强制锁美区 (en-us)
+# 逻辑：只要不是 es-ar (阿根廷) 或 en-us (美区)，全部重定向到 en-us
+^https:\/\/www\.xbox\.com\/(?!es-ar|es-AR|en-us)([a-zA-Z]{2}-[a-zA-Z]{2})(\/.*)$ https://www.xbox.com/en-us$2 302
+
+# 3. Corehalo 跳转强制锁美区
+# 逻辑：同上，修正 Corehalo 的 r 参数为 en-us
+^https:\/\/app\.corehalo\.com\/ms\/link\/go\?(.*&)?r=(?!es-ar|es-AR|en-us)([a-zA-Z]{2}-[a-zA-Z]{2})(&.*)?$ https://app.corehalo.com/ms/link/go?$1r=en-us$3 302
+
+[MITM]
+hostname = %APPEND% www.microsoft.com, www.xbox.com, app.corehalo.com
