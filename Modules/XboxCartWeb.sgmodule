@@ -13,5 +13,4 @@ addtocart.com = 198.18.0.1
 xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js, timeout=60
 
 [MITM]
-# 必须开启，用于解密 HTTPS 流量
 hostname = %APPEND% addtocart.com
