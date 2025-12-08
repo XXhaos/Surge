@@ -6,15 +6,15 @@
 [Script]
 # 1. 抓 Product 参数 (Response)
 # 修复：优化正则写法，忽略大小写
-XboxProductList = type=http-response, pattern=(?i)^https://emerald\.xboxservices\.com/xboxcomfd/productActions/.*locale=en-us, requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/XboxProductList.js
+XboxProductList = type=http-response, pattern=(?i)^https://emerald\.xboxservices\.com/xboxcomfd/productActions/.*locale=en-us, requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/XboxProductList.js
 
 # 2. 获取 Authorization & CartId
 # 修复：加上 (?i) 忽略 Cart/cart 大小写，去掉强制结尾的 \?
-Xbox_Auth_CartId = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/eligibilityCheck, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/authorization%26cartId.js
+Xbox_Auth_CartId = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/eligibilityCheck, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/authorization%26cartId.js
 
 # 3. 获取 MS-CV & MUID
 # 修复：加上 (?i) 忽略大小写
-Xbox_Mscv_MUID = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/loadCart, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/CartMscv%26MUID%26VectorId.js
+Xbox_Mscv_MUID = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/loadCart, requires-body=0, script-update-interval=0, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/CartMscv%26MUID%26VectorId.js
 
 [Header Rewrite]
 # 【防缓存】强制删除 emerald 域名的协商缓存头
