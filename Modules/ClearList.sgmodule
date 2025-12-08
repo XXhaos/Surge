@@ -9,7 +9,7 @@ clearlist.com = 198.18.0.1
 
 [Script]
 # 正则匹配 clearlist.com (兼容 http 和 https)
-xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/ClearXboxProductList_Web.js, timeout=10
+xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/Scripts/ClearXboxProductList_Web.js, timeout=10
 
 [MITM]
 hostname = %APPEND% clearlist.com
