@@ -10,10 +10,12 @@ const STORE_KEY = "ApprovalCartId";
 
 (async () => {
     // 1. 方法校验
-    if ($request.method !== "POST") {
+    if (method !== "POST" && method !== "PUT") {
         $done({});
         return;
     }
+
+    console.log(`▶️ 捕获到购买请求 (${method})，开始处理...`);
 
     // 2. 读取 Store
     const rawIds = $persistentStore.read(STORE_KEY);
