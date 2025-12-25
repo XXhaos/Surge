@@ -1,11 +1,11 @@
 /**
- * Surge 脚本：微软家庭组批量购买 (串行防风控版)
+ * Surge 脚本：微软家庭组批量购买 (串行防风控版 - 拦截模式)
  * * 模式：串行执行 (Serial Execution)
- * * 策略：每处理完一个请求，强制休息 1.5 秒，模拟真人操作频率，避免触发微软风控。
+ * * 机制：脚本全权接管，循环处理完所有 ID 后，拦截原始请求并直接返回成功状态给前端。
  */
 
 const STORE_KEY = "ApprovalCartId";
-const DELAY_MS = 1500; // 【设置】每个请求间隔 1500毫秒 (1.5秒)
+const DELAY_MS = 1500; // 【设置】每个请求间隔 1500毫秒
 
 (async () => {
     // 1. 严格限制仅允许 POST
@@ -28,11 +28,11 @@ const DELAY_MS = 1500; // 【设置】每个请求间隔 1500毫秒 (1.5秒)
         return;
     }
 
-    // 3. 启动通知 (提示用户这会比较慢)
+    // 3. 启动通知
     $notification.post(
         "🐢 慢速防风控模式启动", 
         `准备串行处理 ${targetIds.length} 个任务`, 
-        `为防风控，每个间隔 ${DELAY_MS/1000} 秒，请耐心等待...`
+        `全程接管请求，请保持页面打开...`
     );
 
     // 4. 准备数据模板
@@ -46,6 +46,7 @@ const DELAY_MS = 1500; // 【设置】每个请求间隔 1500毫秒 (1.5秒)
     }
 
     const baseHeaders = { ...$request.headers };
+    // 移除长度头，让 httpClient 自动计算
     delete baseHeaders["Content-Length"];
     delete baseHeaders["content-length"];
 
@@ -55,7 +56,7 @@ const DELAY_MS = 1500; // 【设置】每个请求间隔 1500毫秒 (1.5秒)
     let failCount = 0;
 
     // ==========================================
-    // 5. 串行循环 (核心修改)
+    // 5. 串行循环
     // ==========================================
     for (let i = 0; i < targetIds.length; i++) {
         const id = targetIds[i];
@@ -71,48 +72,62 @@ const DELAY_MS = 1500; // 【设置】每个请求间隔 1500毫秒 (1.5秒)
             body: JSON.stringify(currentBody)
         };
 
-        // --- 发送请求并等待结果 ---
+        // --- 发送请求 ---
         console.log(`🔄 [${i + 1}/${targetIds.length}] 正在处理 ${id}...`);
         const result = await sendRequest(options);
 
         // --- 记录结果 ---
-        if (result.status === 200) {
+        if (result && result.status >= 200 && result.status < 300) {
             console.log(`✅ 成功`);
             successCount++;
         } else {
-            console.log(`❌ 失败 (Code: ${result.status})`);
+            console.log(`❌ 失败 (Code: ${result ? result.status : 'unknown'})`);
             failCount++;
         }
 
-        // --- 防风控间隔 (如果是最后一个就不睡了) ---
+        // --- 防风控间隔 (最后一个请求后不等待) ---
         if (i < targetIds.length - 1) {
             console.log(`⏳ 等待 ${DELAY_MS}ms...`);
             await sleep(DELAY_MS);
         }
     }
 
-    // 6. 清空 Store
+    // 6. 清空 Store (防止下次误触发)
     $persistentStore.write(null, STORE_KEY);
-    console.log(`🏁 所有任务执行完毕。成功: ${successCount}, 失败: ${failCount}`);
+    console.log(`🏁 任务结束。成功: ${successCount}, 失败: ${failCount}`);
 
-    // 7. 结束通知
-    if (failCount > 0) {
-        $notification.post("⚠️ 批量执行完毕", `成功 ${successCount} | 失败 ${failCount}`, "当前主请求已放行");
-    } else {
-        $notification.post("✅ 批量执行完毕", `已稳定处理 ${successCount} 个请求`, "当前主请求已放行");
-    }
+    // 7. 发送最终通知
+    const statusMsg = failCount > 0 ? `成功 ${successCount} | 失败 ${failCount}` : `全部 ${successCount} 个成功`;
+    $notification.post("✅ 批量处理完成", statusMsg, "原始请求已拦截，流程结束");
 
-    // 8. 直接放行主请求
-    $done({});
+    // ==========================================
+    // 8. 核心修改：拦截原始请求，返回伪造成功响应
+    // ==========================================
+    $done({
+        response: {
+            status: 200,
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Access-Control-Allow-Origin": "*",
+                "X-Script-By": "Surge-Batch-Processor"
+            },
+            // 返回一个看起来正常的空 JSON 或者微软风格的响应
+            body: JSON.stringify({
+                status: "Complete",
+                message: "Processed by Surge script",
+                totalProcessed: targetIds.length
+            })
+        }
+    });
 
 })();
 
-// 工具函数：延时器
+// --- 工具函数 ---
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// 工具函数：网络请求 (纯净版，无超时限制)
 function sendRequest(opts) {
     return new Promise((resolve) => {
         $httpClient.post(opts, (err, resp, data) => {
