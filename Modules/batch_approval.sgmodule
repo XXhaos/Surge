@@ -9,4 +9,4 @@ ApprovalCartId = type=http-request, pattern=^https:\/\/buynow\.production\.store
 batch_purchase_send = type=http-request, pattern=^https:\/\/buynow\.production\.store-web\.dynamics\.com\/v1\.0\/cart\/updateCart.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/batch_purchase_send.js, requires-body=true, timeout=30
 
 [MITM]
-hostname = %APPEND% buynow.production.store-web.dynamics.com, production.store-web.dynamics.com
+hostname = %APPEND% *.dynamics.com
