@@ -1,19 +1,19 @@
 /*
- * Surge 脚本：清空 ApproveCartId
+ * Surge 脚本：清空 ApprovalCartId
  * 功能：1. 清空数据 2. 系统弹窗 3. 网页显示纯净结果
  * 触发地址：http://clear_list.com
  */
 
-const key = "ApproveCartId";
+const key = "ApprovalCartId";
 
 // 1. 执行清空
 $persistentStore.write("", key);
 
 // 2. 控制台日志
-console.log("✅ 操作成功 - 已清空 ApproveCartId");
+console.log("✅ 操作成功 - 已清空 ApprovalCartId");
 
 // 3. 发送系统通知 (手机顶部依然会弹窗)
-$notification.post("🗑️ 清单已清空", "操作成功", "ApproveCartId 已重置为空对象");
+$notification.post("🗑️ 清单已清空", "操作成功", "ApprovalCartId 已重置为空对象");
 
 // 4. 生成网页 HTML (去掉了提示文字)
 const html = `
@@ -33,7 +33,7 @@ const html = `
 <body>
     <div class="card">
         <h1>✅ 操作成功</h1>
-        <p>ApproveCartId 已被清空</p>
+        <p>ApprovalCartId 已被清空</p>
     </div>
 </body>
 </html>`;
