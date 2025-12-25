@@ -1,9 +1,7 @@
 /**
- * Surge 脚本：微软家庭组批量购买 (执行后清空变量版)
- * * 逻辑变更：
- * 1. 依旧依次发送请求。
- * 2. 依旧会统计成功和失败的数量并弹窗通知。
- * 3. 【新】无论结果如何，脚本结束时直接清空 ApprovalCartId，不再保留失败任务。
+ * Surge 脚本：微软家庭组批量购买 (静默防抖版)
+ * * 修复问题：解决因前端重试导致的“先成功后报错”的双重通知问题。
+ * * 逻辑变更：当未读取到 ID 时，不再弹窗打扰，仅后台记录日志。
  */
 
 const STORE_KEY = "ApprovalCartId";
@@ -15,22 +13,24 @@ const STORE_KEY = "ApprovalCartId";
         return;
     }
 
-    $notification.post(`▶️ 捕获到购买请求 (${method})，开始处理...`);
-
     // 2. 读取 Store
     const rawIds = $persistentStore.read(STORE_KEY);
+    
+    // 【修改点】如果读不到 ID，说明可能是重复请求或已执行完毕，直接静默退出
     if (!rawIds) {
-        $notification.post("脚本中止", "未读取到 ApprovalCartId", "请先抓取 ID");
+        console.log("ℹ️ [防抖] 未读取到 ApprovalCartId，可能是重复请求或任务已清空，脚本跳过。");
         $done({});
         return;
     }
 
     const targetIds = rawIds.split("&").filter(Boolean);
     if (targetIds.length === 0) {
-        $notification.post("脚本中止", "任务列表为空", "");
+        console.log("ℹ️ [防抖] 任务列表解析为空，脚本跳过。");
         $done({});
         return;
     }
+
+    $notification.post("▶️ 开始批量处理", `捕获到请求，准备执行 ${targetIds.length} 个任务`, "请稍候...");
 
     // 3. 解析原始 Body (作为只读模板)
     let originalBodyTemplate = null;
@@ -50,15 +50,14 @@ const STORE_KEY = "ApprovalCartId";
     let failedIds = [];
     let successCount = 0;
 
-    console.log(`🚀 开始执行，共 ${targetIds.length} 个 CartID (执行完将清空列表)`);
+    console.log(`🚀 开始执行，共 ${targetIds.length} 个 CartID`);
 
     // 5. 循环发送
     for (let i = 0; i < targetIds.length; i++) {
         const id = targetIds[i];
         
-        // --- 深拷贝 Body ---
         let currentBody = JSON.parse(JSON.stringify(originalBodyTemplate));
-        currentBody.cartId = id; // 仅修改 ID
+        currentBody.cartId = id; 
 
         const options = {
             url: $request.url,
@@ -77,29 +76,25 @@ const STORE_KEY = "ApprovalCartId";
             failedIds.push(id);
         }
 
-        await sleep(300); // 防并发拥堵
+        await sleep(300); 
     }
 
-    // ==========================================
-    // 6. 核心修改：强制清空 Store
-    // ==========================================
-    
-    // 无论成功失败，直接清空变量
+    // 6. 强制清空 Store
     $persistentStore.write(null, STORE_KEY);
     console.log("🧹 已强制清空 ApprovalCartId 变量");
 
-    // 7. 通知逻辑 (仅告知结果，不再回写)
+    // 7. 通知逻辑
     if (failedIds.length > 0) {
         $notification.post(
-            "⚠️ 批量执行完毕 (变量已清空)", 
+            "⚠️ 批量执行完毕", 
             `成功: ${successCount} | 失败: ${failedIds.length}`, 
-            "失败的 ID 未保留，请注意查看日志"
+            "变量已清空，失败任务未保留"
         );
     } else {
         $notification.post(
-            "✅ 批量执行完毕 (变量已清空)", 
+            "✅ 批量执行完毕", 
             `共处理 ${successCount} 个请求`, 
-            "所有任务均返回 HTTP 200"
+            "变量已清空，流程结束"
         );
     }
 
