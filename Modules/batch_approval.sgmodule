@@ -1,5 +1,5 @@
-#!name=微软家庭组批量允许
-#!desc=自动抓取CartId并执行批量购买流程
+#!name=Microsoft Family Batch Approve
+#!desc=自动抓取CartId并替换批量购买流程
 #!category=XBOX
 #!author=Ah Long
 
