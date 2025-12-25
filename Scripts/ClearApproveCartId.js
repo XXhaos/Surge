@@ -7,7 +7,7 @@
 const key = "ApproveCartId";
 
 // 1. 执行清空
-$persistentStore.write("{}", key);
+$persistentStore.write("", key);
 
 // 2. 控制台日志
 console.log("✅ 操作成功 - 已清空 ApproveCartId");
