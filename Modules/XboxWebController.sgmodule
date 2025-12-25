@@ -1,0 +1,24 @@
+#!name=Xbox Web Controller
+#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId
+#!author=Ah Long & XXhaos
+#!category=XBOX
+
+[Host]
+# 将自定义域名解析到 Surge 虚拟 IP (198.18.0.1)
+# 这样流量会被 Surge 直接截获并交给脚本处理，不会走公网
+addtocart.com = 198.18.0.1
+clearlist.com = 198.18.0.1
+clearapprovalcartid.com = 198.18.0.1
+
+[Script]
+# 1. 触发远程添加/购买脚本 (超时时间 60s)
+xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/NewAddToCart_Web.js, timeout=60
+
+# 2. 清空 XboxProductList (超时时间 10s)
+xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/Scripts/ClearXboxProductList_Web.js, timeout=10
+
+# 3. 清空 ApproveCartId (超时时间 10s)
+clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/ClearApproveCartId.js, timeout=10
+
+[MITM]
+hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com
