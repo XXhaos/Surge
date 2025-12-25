@@ -17,8 +17,8 @@ xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?.*, scrip
 # 2. 清空 XboxProductList (超时时间 10s)
 xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/Scripts/ClearXboxProductList_Web.js, timeout=10
 
-# 3. 清空 ApproveCartId (超时时间 10s)
-clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/ClearApproveCartId.js, timeout=10
+# 3. 清空 ApprovalCartId (超时时间 10s)
+clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/ClearApprovalCartId.js, timeout=10
 
 [MITM]
 hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com
