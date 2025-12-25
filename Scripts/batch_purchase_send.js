@@ -15,7 +15,7 @@ const STORE_KEY = "ApprovalCartId";
         return;
     }
 
-    console.log(`▶️ 捕获到购买请求 (${method})，开始处理...`);
+    $notification.post(`▶️ 捕获到购买请求 (${method})，开始处理...`);
 
     // 2. 读取 Store
     const rawIds = $persistentStore.read(STORE_KEY);
