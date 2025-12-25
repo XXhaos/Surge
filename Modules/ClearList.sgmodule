@@ -1,15 +1,20 @@
-#!name=Xbox Clear List Web
-#!desc=访问 https://clearlist.com 清空 XboxProductList
-#!author=Ah Long
+#!name=Xbox Local Web
+#!desc=访问 https://clearlist.com 清空 XboxProductList；访问 https://clearapprovalcartid.com 清空 ApproveCartId
+#!author=Ah Long & XXhaos
 #!category=XBOX
+#!system=ios
 
 [Host]
-# 将 clearlist.com 解析到 Surge 虚拟 IP
+# 将域名解析到 Surge 虚拟 IP 以便拦截
 clearlist.com = 198.18.0.1
+clearapprovalcartid.com = 198.18.0.1
 
 [Script]
-# 正则匹配 clearlist.com (兼容 http 和 https)
+# 1. 清空 Product List
 xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/Scripts/ClearXboxProductList_Web.js, timeout=10
 
+# 2. 清空 Approve Cart ID (新增)
+clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/ClearApproveCartId.js, timeout=10
+
 [MITM]
-hostname = %APPEND% clearlist.com
+hostname = %APPEND% clearlist.com, clearapprovalcartid.com
