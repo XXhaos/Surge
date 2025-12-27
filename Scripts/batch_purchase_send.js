@@ -1,11 +1,12 @@
 /**
- * Surge 脚本：微软家庭组批量购买 (串行执行 - 拦截模式)
- * * 模式：串行执行 (Serial Execution)
- * * 机制：循环处理完所有 ID 后，拦截原始请求，直接返回伪造的成功响应。
+ * Surge 脚本：微软家庭组批量购买 (防风控增强版)
+ * * 特性 1: 随机抖动延迟 (1.5s ~ 3.5s 之间随机)，模拟真人。
+ * * 特性 2: 智能熔断，遇到 429/403 立即停止，保护账号。
  */
 
 const STORE_KEY = "ApprovalCartId";
-const DELAY_MS = 1500; // 每个请求间隔 1.5秒
+const BASE_DELAY = 1500; // 基础间隔
+const JITTER_MAX = 2000; // 最大随机附加间隔 (0~2000ms)
 
 (async () => {
     // 1. 严格限制仅允许 POST
@@ -17,8 +18,7 @@ const DELAY_MS = 1500; // 每个请求间隔 1.5秒
     // 2. 读取 Store
     const rawIds = $persistentStore.read(STORE_KEY);
     if (!rawIds) {
-        // 如果没有数据，说明可能是正常的单个购买，放行
-        console.log("ℹ️ [旁路] 未读取到 ApprovalCartId，放行原始请求。");
+        console.log("ℹ️ [旁路] 未读取到 ApprovalCartId，放行。");
         $done({});
         return;
     }
@@ -31,38 +31,34 @@ const DELAY_MS = 1500; // 每个请求间隔 1.5秒
 
     // 3. 启动通知
     $notification.post(
-        "🐢 批量处理启动", 
-        `准备串行处理 ${targetIds.length} 个任务`, 
-        `全程接管请求，请勿关闭页面...`
+        "🛡️ 防风控批量启动", 
+        `队列: ${targetIds.length} 个请求`, 
+        `启用随机延迟与熔断保护机制...`
     );
 
-    // 4. 准备数据模板
     let originalBodyTemplate;
     try {
         originalBodyTemplate = JSON.parse($request.body);
     } catch (e) {
-        console.log(`❌ Body 解析失败: ${e}`);
         $done({});
         return;
     }
 
     const baseHeaders = { ...$request.headers };
-    // 移除长度头，让 httpClient 自动计算
     delete baseHeaders["Content-Length"];
     delete baseHeaders["content-length"];
 
-    console.log(`🚀 开始串行执行，队列长度: ${targetIds.length}`);
-
     let successCount = 0;
     let failCount = 0;
+    let isBanned = false; // 标记是否被风控
 
     // ==========================================
-    // 5. 串行循环
+    // 串行循环
     // ==========================================
     for (let i = 0; i < targetIds.length; i++) {
         const id = targetIds[i];
         
-        // --- 构造请求 ---
+        // 构造请求
         let currentBody = JSON.parse(JSON.stringify(originalBodyTemplate));
         currentBody.cartId = id;
 
@@ -73,59 +69,59 @@ const DELAY_MS = 1500; // 每个请求间隔 1.5秒
             body: JSON.stringify(currentBody)
         };
 
-        // --- 发送请求 ---
-        console.log(`🔄 [${i + 1}/${targetIds.length}] 正在处理 ${id}...`);
+        console.log(`🔄 [${i + 1}/${targetIds.length}] 处理 ${id.substring(0,6)}...`);
         
-        // 发送并等待结果
         const result = await sendRequest(options);
 
-        // --- 记录结果 ---
+        // --- 结果判定与熔断逻辑 ---
         if (result && result.status >= 200 && result.status < 300) {
-            console.log(`✅ 成功`);
+            console.log(`   ✅ 成功`);
             successCount++;
+        } else if (result.status === 429 || result.status === 403) {
+            // 429: Too Many Requests (请求太快)
+            // 403: Forbidden (可能鉴权失败或被封禁)
+            console.log(`   ⛔️ 触发风控 (Code: ${result.status})! 立即停止后续任务！`);
+            $notification.post("⛔️ 任务熔断停止", `检测到微软风控 (${result.status})`, "已停止后续请求以保护账号");
+            isBanned = true;
+            failCount++;
+            break; // 👈 核心：立即跳出循环，不再发包
         } else {
-            console.log(`❌ 失败 (Code: ${result ? result.status : 'unknown'})`);
+            console.log(`   ❌ 失败 (Code: ${result ? result.status : 'unknown'})`);
             failCount++;
         }
 
-        // --- 防风控间隔 (最后一个请求后不等待) ---
-        if (i < targetIds.length - 1) {
-            console.log(`⏳ 等待 ${DELAY_MS}ms...`);
-            await sleep(DELAY_MS);
+        // --- 随机抖动延迟 ---
+        // 只有不是最后一个，且没有被Ban，才等待
+        if (i < targetIds.length - 1 && !isBanned) {
+            // 生成 1500ms 到 3500ms 之间的随机时间
+            const randomTime = BASE_DELAY + Math.floor(Math.random() * JITTER_MAX);
+            console.log(`   ⏳ 随机等待 ${(randomTime/1000).toFixed(2)}s...`);
+            await sleep(randomTime);
         }
     }
 
-    // 6. 清空 Store
+    // 4. 清空 Store
     $persistentStore.write(null, STORE_KEY);
-    console.log(`🏁 任务结束。成功: ${successCount}, 失败: ${failCount}`);
 
-    // 7. 发送最终通知
-    const statusMsg = failCount > 0 ? `成功 ${successCount} | 失败 ${failCount}` : `全部 ${successCount} 个成功`;
-    $notification.post("✅ 批量处理完成", statusMsg, "原始请求已拦截，请手动刷新页面");
+    // 5. 最终处理
+    if (!isBanned) {
+        const msg = `成功 ${successCount} | 失败 ${failCount}`;
+        $notification.post("✅ 批量完成", msg, "原始请求已拦截，请刷新页面");
+    }
 
-    // ==========================================
-    // 8. 核心修改：拦截模式 (返回伪造成功)
-    // ==========================================
+    // 拦截并返回伪造成功
     $done({
         response: {
             status: 200,
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Access-Control-Allow-Origin": "*",
-                "X-Script-By": "Surge-Batch-Processor"
-            },
-            // 返回一个符合微软格式的简单 JSON，骗过前端让它以为成功了
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 status: "Complete",
-                message: "Batch processed by Surge",
-                totalProcessed: targetIds.length
+                message: "Processed by Surge (Anti-Ban Mode)"
             })
         }
     });
 
 })();
-
-// --- 工具函数 ---
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
