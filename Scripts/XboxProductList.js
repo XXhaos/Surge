@@ -33,11 +33,10 @@
       .sort((a, b) => parseInt(a.slice(7)) - parseInt(b.slice(7)))
       .map(k => store[k]);
 
+    // 【修改点1】简化判定逻辑：只要 ProductId 一致，即判定为相同商品
     const same = (a, b) =>
       a && b &&
-      String(a.ProductId||'') === String(b.ProductId||'') &&
-      String(a.SkuId||'') === String(b.SkuId||'') &&
-      String(a.AvailabilityId||'') === String(b.AvailabilityId||'');
+      String(a.ProductId||'') === String(b.ProductId||'');
 
     // 递归收集 Cart（去重当前响应内）
     const found = [];
@@ -54,7 +53,8 @@
             AvailabilityId: String(args.AvailabilityId ?? '').trim()
           };
           if (r.ProductId && r.SkuId && r.AvailabilityId) {
-            const key = `${r.ProductId}||${r.SkuId}||${r.AvailabilityId}`;
+            // 【修改点2】当前响应内部的去重 Set 也只记录 ProductId
+            const key = r.ProductId;
             if (!seen.has(key)) { seen.add(key); found.push(r); }
           }
         }
