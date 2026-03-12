@@ -1,5 +1,6 @@
 /**
- * SyncXboxCloud.js - 适配当前 Worker 最终版
+ * SyncXboxCloud.js
+ * 一次访问只同步当前第一组
  */
 
 const workerUrl = 'https://ngaccountant.biubiubiu-lalala.workers.dev/?token=xbox123';
@@ -113,6 +114,7 @@ function renderUI(title, message, type = "success") {
   });
 }
 
+// 只执行一次：读当前组 -> 写本地 -> clear当前组 -> 停止
 $httpClient.get(workerUrl, (error, response, data) => {
   if (error) {
     $notification.post("❌ 同步失败", "无法连接 Worker", String(error));
@@ -144,9 +146,6 @@ $httpClient.get(workerUrl, (error, response, data) => {
     );
   }
 
-  const currentGroup = payload.currentGroup || {};
-  const keys = Object.keys(currentGroup);
-
   if (!payload.ok) {
     $notification.post("❌ 同步失败", "Worker 返回 ok=false", "");
     return renderUI(
@@ -156,6 +155,10 @@ $httpClient.get(workerUrl, (error, response, data) => {
     );
   }
 
+  const currentGroup = payload.currentGroup || {};
+  const keys = Object.keys(currentGroup);
+
+  // 当前没有可同步组
   if (!keys.length) {
     $notification.post("📭 当前无待同步组", "云端队列为空", "");
     return renderUI(
@@ -165,6 +168,7 @@ $httpClient.get(workerUrl, (error, response, data) => {
     );
   }
 
+  // 只把当前这一组写入 Surge 本地
   const writeOK = $persistentStore.write(JSON.stringify(currentGroup), storeKey);
 
   if (!writeOK) {
@@ -176,7 +180,7 @@ $httpClient.get(workerUrl, (error, response, data) => {
     );
   }
 
-  // 本地写入成功后，再清理云端当前第一组
+  // 本地写入成功后，只 clear 当前这一组
   $httpClient.get(workerUrl + '&action=clear', (clearError, clearResponse, clearData) => {
     if (clearError) {
       $notification.post(
@@ -186,9 +190,9 @@ $httpClient.get(workerUrl, (error, response, data) => {
       );
 
       return renderUI(
-        "⚠️ 本地已写入，但云端未清理",
+        "⚠️ 当前组已写入，但云端未清理",
         `<p>已成功写入第 <b>${escapeHTML(payload.currentGroupIndex)}</b> 组，共 <b>${keys.length}</b> 个商品。</p>
-         <p>但清理云端当前组时失败，下次同步时可能再次获取到这一组。</p>`,
+         <p>但清理云端当前组时失败，下次访问时可能还是这一组。</p>`,
         "warning"
       );
     }
@@ -210,17 +214,20 @@ $httpClient.get(workerUrl, (error, response, data) => {
     const list = keys.map(k => `<li>${escapeHTML(k)}</li>`).join('');
 
     let message =
-      `<p>本次已同步第 <b>${escapeHTML(payload.currentGroupIndex)}</b> 组，共 <b>${keys.length}</b> 个商品。</p>
-       <p>同步完成后，云端剩余 <b>${remainingGroups}</b> 组待处理。</p>`;
+      `<p>本次只同步了第 <b>${escapeHTML(payload.currentGroupIndex)}</b> 组，共 <b>${keys.length}</b> 个商品。</p>
+       <p>当前这一组已经从云端队列删除。</p>
+       <p>现在还剩 <b>${remainingGroups}</b> 组待处理。</p>`;
 
     if (remainingGroups > 0 && nextGroupIndex !== null) {
-      message += `<p>下一组为第 <b>${escapeHTML(nextGroupIndex)}</b> 组，包含 <b>${escapeHTML(nextGroupCount)}</b> 个商品。</p>`;
+      message += `<p>下次访问网页时，将同步第 <b>${escapeHTML(nextGroupIndex)}</b> 组（共 <b>${escapeHTML(nextGroupCount)}</b> 个商品）。</p>`;
+    } else {
+      message += `<p>所有分组已经处理完毕。</p>`;
     }
 
     message += `<ul>${list}</ul>`;
 
     $notification.post(
-      "✅ 同步成功",
+      "✅ 当前组同步成功",
       `第 ${payload.currentGroupIndex} 组已同步`,
       `剩余 ${remainingGroups} 组`
     );
