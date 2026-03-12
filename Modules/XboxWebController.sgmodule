@@ -4,24 +4,27 @@
 #!category=XBOX
 
 [Host]
-# 将自定义虚拟域名解析到 Surge 虚拟 IP (198.18.0.1)
 addtocart.com = 198.18.0.1
 clearlist.com = 198.18.0.1
 clearapprovalcartid.com = 198.18.0.1
 syncxbox.com = 198.18.0.1
 
 [Script]
-# 1. 触发远程添加/购买脚本
+# 1. 远程添加
 xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/NewAddToCart_Web.js, timeout=60
-
-# 2. 清空本地 XboxProductList
+# 2. 清空本地列表
 xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/Scripts/ClearXboxProductList_Web.js, timeout=10
-
-# 3. 清空 ApprovalCartId
+# 3. 清空 CartId
 clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/ClearApprovalCartId.js, timeout=10
-
-# 4. 从云端同步数据到本地 XboxProductList 并清理云端
+# 4. 【新增】同步云端
 xbox_sync_cloud = type=http-request, pattern=^https?://syncxbox\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/SyncXboxCloud.js, timeout=30
+
+[Rule]
+# 【关键修复】确保虚拟域名不走代理，防止 EOF 报错
+DOMAIN,addtocart.com,DIRECT
+DOMAIN,clearlist.com,DIRECT
+DOMAIN,clearapprovalcartid.com,DIRECT
+DOMAIN,syncxbox.com,DIRECT
 
 [MITM]
 hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com, syncxbox.com
