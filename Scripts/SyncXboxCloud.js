@@ -2,7 +2,7 @@
  * SyncXboxCloud.js - 适配当前 Worker 最终版
  */
 
-const workerUrl = 'https://ngaccountant.biubiubiu-lalala.workers.dev/?token=xbox123';
+const workerUrl = 'https://xbox-telegram-bot.biubiubiu-lalala.workers.dev/?token=xbox123';
 const storeKey = 'XboxProductList';
 
 function escapeHTML(str) {
