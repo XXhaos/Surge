@@ -1,24 +1,27 @@
 #!name=Xbox Web Controller
-#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId
+#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空本地 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId\n4. 访问 https://syncxbox.com -> 从云端同步数据并清理云端队列
 #!author=Ah Long & XXhaos
 #!category=XBOX
 
 [Host]
-# 将自定义域名解析到 Surge 虚拟 IP (198.18.0.1)
-# 这样流量会被 Surge 直接截获并交给脚本处理，不会走公网
+# 将自定义虚拟域名解析到 Surge 虚拟 IP (198.18.0.1)
 addtocart.com = 198.18.0.1
 clearlist.com = 198.18.0.1
 clearapprovalcartid.com = 198.18.0.1
+syncxbox.com = 198.18.0.1
 
 [Script]
-# 1. 触发远程添加/购买脚本 (超时时间 60s)
+# 1. 触发远程添加/购买脚本
 xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/NewAddToCart_Web.js, timeout=60
 
-# 2. 清空 XboxProductList (超时时间 10s)
+# 2. 清空本地 XboxProductList
 xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/main/Scripts/ClearXboxProductList_Web.js, timeout=10
 
-# 3. 清空 ApprovalCartId (超时时间 10s)
+# 3. 清空 ApprovalCartId
 clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/ClearApprovalCartId.js, timeout=10
 
+# 4. 从云端同步数据到本地 XboxProductList 并清理云端
+xbox_sync_cloud = type=http-request, pattern=^https?://syncxbox\.com/?.*, script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/Scripts/SyncXboxCloud.js, timeout=30
+
 [MITM]
-hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com
+hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com, syncxbox.com
