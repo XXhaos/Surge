@@ -1,6 +1,6 @@
 // Surge: script-response-body
 // 递归提取 GET 响应中 actionType == "Cart" 的 {ProductId,SkuId,AvailabilityId}
-// 以 product1/product2… 顺序写入 XboxProductList；完全重复则跳过
+// 以 product1/product2… 顺序写入 XboxProductList；ProductId重复则跳过
 // 通知：🆕 新增 / 🔁 已存在（不含 URL），副标题仅显示「当前共有X个商品📦」
 
 (function () {
