@@ -1,5 +1,5 @@
 /**
- * SyncXboxCloud.js - 分组队列版
+ * SyncXboxCloud.js - 适配当前 Worker 最终版
  */
 
 const workerUrl = 'https://ngaccountant.biubiubiu-lalala.workers.dev/?token=xbox123';
@@ -63,6 +63,9 @@ function renderUI(title, message, type = "success") {
       line-height: 1.7;
       word-break: break-word;
     }
+    .msg p {
+      margin: 0 0 10px;
+    }
     .msg ul {
       margin: 10px 0 0;
       padding-left: 20px;
@@ -70,6 +73,11 @@ function renderUI(title, message, type = "success") {
     }
     .msg li {
       margin: 6px 0;
+    }
+    .sub {
+      color: #8e99ab;
+      font-size: 12px;
+      margin-top: 14px;
     }
     button {
       margin-top: 18px;
@@ -86,6 +94,7 @@ function renderUI(title, message, type = "success") {
   <div class="card">
     <h1>${escapeHTML(title)}</h1>
     <div class="msg">${message}</div>
+    <div class="sub">SyncXbox Cloud Queue</div>
     <button onclick="history.back()">确定</button>
   </div>
 </body>
@@ -96,7 +105,8 @@ function renderUI(title, message, type = "success") {
       status: 200,
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store"
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Pragma": "no-cache"
       },
       body: html
     }
@@ -106,7 +116,11 @@ function renderUI(title, message, type = "success") {
 $httpClient.get(workerUrl, (error, response, data) => {
   if (error) {
     $notification.post("❌ 同步失败", "无法连接 Worker", String(error));
-    return renderUI("❌ 连接失败", `<p>${escapeHTML(String(error))}</p>`, "error");
+    return renderUI(
+      "❌ 连接失败",
+      `<p>无法连接至云端 Worker。</p><p>${escapeHTML(String(error))}</p>`,
+      "error"
+    );
   }
 
   let payload;
@@ -114,11 +128,33 @@ $httpClient.get(workerUrl, (error, response, data) => {
     payload = JSON.parse((data || '').trim() || '{}');
   } catch (e) {
     $notification.post("❌ 同步失败", "返回 JSON 无法解析", "");
-    return renderUI("❌ 解析错误", `<p>${escapeHTML(String(e.message || e))}</p>`, "error");
+    return renderUI(
+      "❌ 解析错误",
+      `<p>Worker 返回内容不是合法 JSON。</p><p>${escapeHTML(String(e.message || e))}</p>`,
+      "error"
+    );
+  }
+
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    $notification.post("❌ 同步失败", "返回结构异常", "");
+    return renderUI(
+      "❌ 数据异常",
+      `<p>Worker 返回的数据结构不正确。</p>`,
+      "error"
+    );
   }
 
   const currentGroup = payload.currentGroup || {};
   const keys = Object.keys(currentGroup);
+
+  if (!payload.ok) {
+    $notification.post("❌ 同步失败", "Worker 返回 ok=false", "");
+    return renderUI(
+      "❌ 同步失败",
+      `<p>Worker 返回失败状态。</p>`,
+      "error"
+    );
+  }
 
   if (!keys.length) {
     $notification.post("📭 当前无待同步组", "云端队列为空", "");
@@ -130,36 +166,65 @@ $httpClient.get(workerUrl, (error, response, data) => {
   }
 
   const writeOK = $persistentStore.write(JSON.stringify(currentGroup), storeKey);
+
   if (!writeOK) {
     $notification.post("❌ 同步失败", "写入 Surge 存储失败", "");
-    return renderUI("❌ 写入失败", `<p>无法写入 Surge 本地存储。</p>`, "error");
+    return renderUI(
+      "❌ 写入失败",
+      `<p>无法写入 Surge 本地存储。</p><p>请检查 Surge 运行环境或本地存储状态。</p>`,
+      "error"
+    );
   }
 
-  // 写入成功后，清掉当前这组
+  // 本地写入成功后，再清理云端当前第一组
   $httpClient.get(workerUrl + '&action=clear', (clearError, clearResponse, clearData) => {
+    if (clearError) {
+      $notification.post(
+        "⚠️ 本地已写入",
+        `第 ${payload.currentGroupIndex} 组已保存`,
+        "但云端清理失败，可能会重复读取当前组"
+      );
+
+      return renderUI(
+        "⚠️ 本地已写入，但云端未清理",
+        `<p>已成功写入第 <b>${escapeHTML(payload.currentGroupIndex)}</b> 组，共 <b>${keys.length}</b> 个商品。</p>
+         <p>但清理云端当前组时失败，下次同步时可能再次获取到这一组。</p>`,
+        "warning"
+      );
+    }
+
     let clearPayload = {};
     try {
       clearPayload = JSON.parse((clearData || '').trim() || '{}');
-    } catch (_) {}
+    } catch (_) {
+      clearPayload = {};
+    }
 
     const remainingGroups = typeof clearPayload.remainingGroups === 'number'
       ? clearPayload.remainingGroups
-      : (payload.remainingAfterCurrent || 0);
+      : (typeof payload.remainingAfterCurrent === 'number' ? payload.remainingAfterCurrent : 0);
+
+    const nextGroupIndex = clearPayload.nextGroupIndex ?? null;
+    const nextGroupCount = clearPayload.nextGroupCount ?? 0;
 
     const list = keys.map(k => `<li>${escapeHTML(k)}</li>`).join('');
 
+    let message =
+      `<p>本次已同步第 <b>${escapeHTML(payload.currentGroupIndex)}</b> 组，共 <b>${keys.length}</b> 个商品。</p>
+       <p>同步完成后，云端剩余 <b>${remainingGroups}</b> 组待处理。</p>`;
+
+    if (remainingGroups > 0 && nextGroupIndex !== null) {
+      message += `<p>下一组为第 <b>${escapeHTML(nextGroupIndex)}</b> 组，包含 <b>${escapeHTML(nextGroupCount)}</b> 个商品。</p>`;
+    }
+
+    message += `<ul>${list}</ul>`;
+
     $notification.post(
       "✅ 同步成功",
-      `当前组 ${keys.length} 个商品`,
+      `第 ${payload.currentGroupIndex} 组已同步`,
       `剩余 ${remainingGroups} 组`
     );
 
-    renderUI(
-      "✅ 当前组同步完成",
-      `<p>本次已同步第 <b>${escapeHTML(payload.currentGroupIndex)}</b> 组，共 <b>${keys.length}</b> 个商品。</p>
-       <p>同步后剩余 <b>${remainingGroups}</b> 组待处理。</p>
-       <ul>${list}</ul>`,
-      "success"
-    );
+    return renderUI("✅ 当前组同步完成", message, "success");
   });
 });
