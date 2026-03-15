@@ -3,7 +3,7 @@
  * 一次访问只同步当前第一组
  */
 
-const workerUrl = 'https://cc1panel.dragonisheep.com/?token=xbox123';
+const workerUrl = 'https://cc.dragonisheep.com/?token=xbox123';
 const storeKey = 'XboxProductList';
 
 function escapeHTML(str) {
