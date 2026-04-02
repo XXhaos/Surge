@@ -1,6 +1,6 @@
 /**
  * Xbox Cart Web Runner
- * 远程路径: https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/main/NewAddToCart_Web.js
+ * 远程路径: https://raw.githubusercontent.com/dragonisheep/Surge/refs/heads/main/NewAddToCart_Web.js
  */
 
 const MARKET = "NG";
