@@ -15,7 +15,7 @@ const FRIENDLY_NAME = `cart-${MARKET}`;
 const CLIENT_CONTEXT = { client: "UniversalWebStore.Cart", deviceType: "Pc" };
 
 const REMOTE_READ_URL  = 'https://cc.dragonisheep.com/surge?token=xbox123';
-const REMOTE_CLEAR_URL = 'https://cc.dragonisheep.com/surge?token=xbox123&action=clear';
+const REMOTE_CLEAR_URL = 'https://cc.dragonisheep.com/surge/clear?token=xbox123';
 const LOCAL_KEY        = 'XboxProductList';
 
 const MUID  = $persistentStore.read("cart-x-authorization-muid");
@@ -101,7 +101,7 @@ function finalizeAndClean() {
     if (failureCount === 0) {
       // 全部成功：发 clear，释放服务端锁并弹出该组
       log("info", "加购全部成功，通知服务端 clear");
-      $httpClient.get(REMOTE_CLEAR_URL, () => doFinish());
+      $httpClient.post({ url: REMOTE_CLEAR_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => doFinish());
     } else {
       // 有失败：不 clear，保留服务端数据，下次可重试
       log("info", `有 ${failureCount} 个失败，保留服务端数据以便重试`);
@@ -125,7 +125,7 @@ function startTask() {
     $notification.post("⚠️ Xbox 脚本", "无需执行", `来源: ${sourceLabel} | 列表为空`);
     // 远程模式下列表为空也要释放锁
     if (useRemote) {
-      $httpClient.get(REMOTE_CLEAR_URL, () => $done({}));
+      $httpClient.post({ url: REMOTE_CLEAR_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => $done({}));
     } else {
       finalizeAndClean();
     }
