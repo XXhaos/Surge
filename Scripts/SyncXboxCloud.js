@@ -5,7 +5,7 @@
  */
 
 const readUrl  = 'https://cc.dragonisheep.com/surge?token=xbox123';
-const clearUrl = 'https://cc.dragonisheep.com/surge?token=xbox123&action=clear';
+const commitUrl = 'https://cc.dragonisheep.com/surge/commit?token=xbox123';
 const storeKey = 'XboxProductList';
 
 function escapeHTML(str) {
@@ -122,7 +122,7 @@ $httpClient.get(readUrl, (error, response, data) => {
   }
 
   // 第三步：本地写入成功，删除云端当前组
-  $httpClient.get(clearUrl, (clearError, clearResponse, clearData) => {
+  $httpClient.post({ url: commitUrl, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ remaining: {} }) }, (clearError, clearResponse, clearData) => {
     if (clearError) {
       $notification.post("⚠️ 本地已写入", `第 ${payload.currentGroupIndex} 组已保存`, "但云端清理失败，下次访问仍是这一组");
       return renderUI(
