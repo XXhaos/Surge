@@ -15,7 +15,8 @@ const FRIENDLY_NAME = `cart-${MARKET}`;
 const CLIENT_CONTEXT = { client: "UniversalWebStore.Cart", deviceType: "Pc" };
 
 const REMOTE_READ_URL  = 'https://cc.dragonisheep.com/surge?token=xbox123';
-const REMOTE_CLEAR_URL = 'https://cc.dragonisheep.com/surge/clear?token=xbox123';
+const REMOTE_CLEAR_URL  = 'https://cc.dragonisheep.com/surge/clear?token=xbox123';
+const REMOTE_UNLOCK_URL = 'https://cc.dragonisheep.com/surge/unlock?token=xbox123';
 const LOCAL_KEY        = 'XboxProductList';
 
 const MUID  = $persistentStore.read("cart-x-authorization-muid");
@@ -103,10 +104,12 @@ function finalizeAndClean() {
       log("info", "加购全部成功，通知服务端 clear");
       $httpClient.post({ url: REMOTE_CLEAR_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => doFinish());
     } else {
-      // 有失败：不 clear，保留服务端数据，下次可重试
-      log("info", `有 ${failureCount} 个失败，保留服务端数据以便重试`);
-      $notification.post("⚠️ 部分失败", `${failureCount} 个加购失败`, "服务端数据已保留，可重新执行");
-      doFinish();
+      // 有失败：释放锁但不弹组，保留服务端数据，下次可重试
+      log("info", `有 ${failureCount} 个失败，释放锁并保留服务端数据以便重试`);
+      $httpClient.post({ url: REMOTE_UNLOCK_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => {
+        $notification.post("⚠️ 部分失败", `${failureCount} 个加购失败`, "服务端数据已保留，可重新执行");
+        doFinish();
+      });
     }
   } else {
     doFinish();
