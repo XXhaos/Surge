@@ -7,15 +7,6 @@
 const readUrl  = 'https://cc.dragonisheep.com/surge?token=xbox123';
 const clearUrl = 'https://cc.dragonisheep.com/surge?token=xbox123&action=clear';
 const storeKey = 'XboxProductList';
-const lockKey  = 'SyncXboxLock';
-
-// ★ 防重入：5 秒内若已执行过，直接放行不处理
-// Surge 规则会同时拦截 read 和 clear 两个请求，第二次触发在此被阻断
-const lockVal = $persistentStore.read(lockKey);
-if (lockVal && Date.now() - parseInt(lockVal, 10) < 5000) {
-  $done({});
-}
-$persistentStore.write(String(Date.now()), lockKey);
 
 function escapeHTML(str) {
   return String(str || '')
