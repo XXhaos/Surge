@@ -5,7 +5,9 @@
  * 流程：
  * 1. GET 读取远程当前组（服务端加锁）
  * 2. 执行加购
- * 3. 加购完成后 GET clear（服务端释放锁 + 弹出该组）
+ * 3. POST /surge/commit 提交结果：
+ *    - remaining 为空 → 服务端弹出当前组（全部成功）
+ *    - remaining 非空 → 服务端用失败的 product 更新当前组，释放锁（部分失败，下次只重试失败部分）
  * 4. 若远程无数据，回退到本地 XboxProductList
  */
 
@@ -14,10 +16,9 @@ const LOCALE = "en-ng";
 const FRIENDLY_NAME = `cart-${MARKET}`;
 const CLIENT_CONTEXT = { client: "UniversalWebStore.Cart", deviceType: "Pc" };
 
-const REMOTE_READ_URL  = 'https://cc.dragonisheep.com/surge?token=xbox123';
-const REMOTE_CLEAR_URL  = 'https://cc.dragonisheep.com/surge/clear?token=xbox123';
-const REMOTE_UNLOCK_URL = 'https://cc.dragonisheep.com/surge/unlock?token=xbox123';
-const LOCAL_KEY        = 'XboxProductList';
+const REMOTE_READ_URL   = 'https://cc.dragonisheep.com/surge?token=xbox123';
+const REMOTE_COMMIT_URL = 'https://cc.dragonisheep.com/surge/commit?token=xbox123';
+const LOCAL_KEY         = 'XboxProductList';
 
 const MUID  = $persistentStore.read("cart-x-authorization-muid");
 const MS_CV = $persistentStore.read("cart-ms-cv");
@@ -28,7 +29,7 @@ const successKeys = [];
 let currentIndex = 0;
 let productList = [];
 let sourceLabel = "";
-let useRemote = false;  // 是否使用了远程数据（决定加购后是否发 clear）
+let useRemote = false;
 
 function log(type, message, detail = "") {
   const icon  = type === "success" ? "✅" : (type === "error" ? "❌" : "ℹ️");
@@ -74,45 +75,54 @@ function finalizeAndClean() {
   const successCount = results.success.length;
   const failureCount = results.failure.length;
 
-  // 清理本地 XboxProductList 中已成功的 key（仅本地模式）
-  let remainingCount = 0;
-  if (!useRemote) {
-    try {
-      let storeObj; try { storeObj = JSON.parse($persistentStore.read(LOCAL_KEY) || "{}"); } catch { storeObj = {}; }
-      for (const k of successKeys) {
-        if (k && Object.prototype.hasOwnProperty.call(storeObj, k)) delete storeObj[k];
-      }
-      remainingCount = Object.keys(storeObj).filter(k => /^product\d+$/.test(k)).length;
-      $persistentStore.write(JSON.stringify(storeObj), LOCAL_KEY);
-      log("info", "本地清理完成", `剩余: ${remainingCount}`);
-    } catch (e) { log("error", "清理异常", String(e)); }
-  }
-
-  const doFinish = () => {
+  const showResult = () => {
     $notification.post(
       "🛒 Xbox 加购完成",
       `成功: ${successCount} / 失败: ${failureCount}`,
-      `来源: ${sourceLabel}${!useRemote ? ` | 剩余本地: ${remainingCount}` : ''}`
+      `来源: ${sourceLabel}`
     );
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Xbox Cart</title></head><body style="font-family:sans-serif;padding:20px;"><h3>执行结果: 成功 ${successCount} / 失败 ${failureCount} | 来源: ${sourceLabel}</h3><div style="background:#f9f9f9;padding:10px;">${logBuffer.join("")}</div></body></html>`;
     $done({ response: { status: 200, headers: { "Content-Type": "text/html;charset=utf-8" }, body: html } });
   };
 
   if (useRemote) {
-    if (failureCount === 0) {
-      // 全部成功：发 clear，释放服务端锁并弹出该组
-      log("info", "加购全部成功，通知服务端 clear");
-      $httpClient.post({ url: REMOTE_CLEAR_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => doFinish());
-    } else {
-      // 有失败：释放锁但不弹组，保留服务端数据，下次可重试
-      log("info", `有 ${failureCount} 个失败，释放锁并保留服务端数据以便重试`);
-      $httpClient.post({ url: REMOTE_UNLOCK_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => {
-        $notification.post("⚠️ 部分失败", `${failureCount} 个加购失败`, "服务端数据已保留，可重新执行");
-        doFinish();
-      });
+    // 构建失败的 product 对象（重新编号 product1, product2...）
+    const failedProducts = {};
+    let fi = 1;
+    for (const item of productList) {
+      if (results.failure.includes(item.productId)) {
+        failedProducts[`product${fi++}`] = {
+          ProductId: item.productId,
+          SkuId: item.skuId,
+          AvailabilityId: item.availabilityId
+        };
+      }
     }
+
+    const logMsg = failureCount === 0
+      ? "全部成功，提交 commit（弹出当前组）"
+      : `${failureCount} 个失败，提交 commit（只保留失败的 product，其余组不变）`;
+    log("info", logMsg);
+
+    // 提交结果到服务端
+    $httpClient.post({
+      url: REMOTE_COMMIT_URL,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remaining: failedProducts })
+    }, () => showResult());
+
   } else {
-    doFinish();
+    // 本地模式：清理已成功的 key
+    try {
+      let storeObj; try { storeObj = JSON.parse($persistentStore.read(LOCAL_KEY) || "{}"); } catch { storeObj = {}; }
+      for (const k of successKeys) {
+        if (k && Object.prototype.hasOwnProperty.call(storeObj, k)) delete storeObj[k];
+      }
+      const remainingCount = Object.keys(storeObj).filter(k => /^product\d+$/.test(k)).length;
+      $persistentStore.write(JSON.stringify(storeObj), LOCAL_KEY);
+      log("info", "本地清理完成", `剩余: ${remainingCount}`);
+    } catch (e) { log("error", "清理异常", String(e)); }
+    showResult();
   }
 }
 
@@ -126,11 +136,15 @@ function startTask() {
   if (productList.length === 0) {
     log("info", "列表为空");
     $notification.post("⚠️ Xbox 脚本", "无需执行", `来源: ${sourceLabel} | 列表为空`);
-    // 远程模式下列表为空也要释放锁
     if (useRemote) {
-      $httpClient.post({ url: REMOTE_CLEAR_URL, headers: { 'Content-Type': 'application/json' }, body: '{}' }, () => $done({}));
+      // 远程为空也要提交 commit 释放锁
+      $httpClient.post({
+        url: REMOTE_COMMIT_URL,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ remaining: {} })
+      }, () => $done({}));
     } else {
-      finalizeAndClean();
+      $done({});
     }
     return;
   }
@@ -166,8 +180,7 @@ function sendRequest() {
 }
 
 // ========================= 主流程 =========================
-// ★ 服务端有锁机制，客户端不再需要时间锁
-// 第一步：尝试从远程读取当前组（服务端此时会加锁）
+// 服务端有锁机制，客户端无需时间锁
 $httpClient.get(REMOTE_READ_URL, (error, response, data) => {
   let remoteGroup = null;
   let groupIndex = null;
@@ -175,13 +188,11 @@ $httpClient.get(REMOTE_READ_URL, (error, response, data) => {
   if (!error && data) {
     try {
       const payload = JSON.parse((data || '').trim() || '{}');
-      // 服务端有锁且有数据时返回 currentGroup
       if (payload.ok && payload.currentGroup) {
         const keys = Object.keys(payload.currentGroup);
         if (keys.length > 0) {
           remoteGroup = payload.currentGroup;
           groupIndex = payload.currentGroupIndex;
-          log("info", "使用远程待同步 Product", `第 ${groupIndex} 组，共 ${keys.length} 个`);
         }
       }
     } catch (_) {}
@@ -190,13 +201,13 @@ $httpClient.get(REMOTE_READ_URL, (error, response, data) => {
   if (remoteGroup) {
     useRemote = true;
     sourceLabel = `远程第 ${groupIndex} 组`;
+    log("info", "使用远程待同步 Product", `第 ${groupIndex} 组，共 ${Object.keys(remoteGroup).length} 个`);
     productList = parseProductList(JSON.stringify(remoteGroup));
     startTask();
   } else {
-    // 远程无数据（队列为空或被锁）或连接失败，回退到本地
     useRemote = false;
-    const localRaw = $persistentStore.read(LOCAL_KEY) || "{}";
     sourceLabel = "本地";
+    const localRaw = $persistentStore.read(LOCAL_KEY) || "{}";
     productList = parseProductList(localRaw);
     if (!error) {
       log("info", "远程队列为空，使用本地 Product");
