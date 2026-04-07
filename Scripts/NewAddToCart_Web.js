@@ -75,14 +75,26 @@ function finalizeAndClean() {
   const successCount = results.success.length;
   const failureCount = results.failure.length;
 
-  const showResult = () => {
+  const showResult = (ngnStr = '', failedNames = []) => {
+    const priceNote = ngnStr ? ` | ${ngnStr}` : '';
+    const notifSubtitle = failureCount === 0
+      ? `成功: ${successCount}${priceNote}`
+      : `成功: ${successCount} / 失败: ${failureCount}${priceNote}`;
+
+    const failedHtml = failedNames.length > 0
+      ? `<div style="color:red;margin-top:10px;"><b>加购失败的游戏：</b><ul>${failedNames.map(n => `<li>${n}</li>`).join('')}</ul></div>`
+      : '';
+    const priceHtml = ngnStr
+      ? `<div style="margin-top:10px;font-weight:bold;">游戏总价: ${ngnStr}</div>`
+      : '';
+
     $notification.post(
       "🛒 Xbox 加购完成",
-      `成功: ${successCount} / 失败: ${failureCount}`,
+      notifSubtitle,
       `来源: ${sourceLabel}`
     );
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Xbox Cart</title></head><body style="font-family:sans-serif;padding:20px;"><h3>执行结果: 成功 ${successCount} / 失败 ${failureCount} | 来源: ${sourceLabel}</h3><div style="background:#f9f9f9;padding:10px;">${logBuffer.join("")}</div></body></html>`;
-    $done({ response: { status: 200, headers: { "Content-Type": "text/html;charset=utf-8" }, body: html } });
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Xbox Cart</title></head><body style="font-family:sans-serif;padding:20px;"><h3>执行结果: 成功 ${successCount} / 失败 ${failureCount} | 来源: ${sourceLabel}</h3>${priceHtml}${failedHtml}<div style="background:#f9f9f9;padding:10px;margin-top:10px;">${logBuffer.join("")}</div></body></html>`;
+    $done({ response: { status: 200, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" }, body: html } });
   };
 
   if (useRemote) {
@@ -104,12 +116,23 @@ function finalizeAndClean() {
       : `${failureCount} 个失败，提交 commit（只保留失败的 product，其余组不变）`;
     log("info", logMsg);
 
-    // 提交结果到服务端
+    // 提交结果到服务端，响应包含价格信息
     $httpClient.post({
       url: REMOTE_COMMIT_URL,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ remaining: failedProducts })
-    }, () => showResult());
+    }, (commitErr, commitResp, commitData) => {
+      // 解析服务端返回的价格信息
+      let priceInfo = {};
+      try { priceInfo = JSON.parse(commitData || '{}'); } catch (_) {}
+
+      // 全部成功：groupNGN；部分失败：successNGN + failedNames
+      const totalNGN = priceInfo.groupNGN ?? priceInfo.successNGN ?? 0;
+      const ngnStr = totalNGN > 0 ? `${totalNGN.toFixed(2)} NGN` : '';
+      const failedNames = priceInfo.failedNames || [];
+
+      showResult(ngnStr, failedNames);
+    });
 
   } else {
     // 本地模式：清理已成功的 key
