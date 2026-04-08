@@ -4,10 +4,10 @@
 #!author=Ah Long
 
 [Script]
-ApprovalCartId = type=http-request, pattern=^https:\/\/buynow\.production\.store-web\.dynamics\.com\/v1\.0\/cart\/updateCart.*, script-path=https://dragonisheep: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@https://raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ApprovalCartId.js, requires-body=0
+ApprovalCartId = type=http-request, pattern=^https:\/\/buynow\.production\.store-web\.dynamics\.com\/v1\.0\/cart\/updateCart.*, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ApprovalCartId.js, requires-body=0
 
-batch_purchase_send = type=http-request, pattern=^https:\/\/buynow\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/purchase\?appId=BuyNow, script-path=https://dragonisheep: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@https://raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/batch_purchase_send.js, requires-body=1, max-size=1048576, timeout=60, binary-body-mode=0, script-update-interval=0
+batch_purchase_send = type=http-request, pattern=^https:\/\/buynow\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/purchase\?appId=BuyNow, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/batch_purchase_send.js, requires-body=1, max-size=1048576, timeout=60, binary-body-mode=0, script-update-interval=0
 
-ApprovalCartClean = type=http-request, pattern=^https:\/\/account\.microsoft\.com\/family\/api\/buy\/requests\/complete, script-path=https://dragonisheep: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@https://raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ClearApprovalCartId.js, requires-body=0
+ApprovalCartClean = type=http-request, pattern=^https:\/\/account\.microsoft\.com\/family\/api\/buy\/requests\/complete, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ClearApprovalCartId.js, requires-body=0
 [MITM]
 hostname = %APPEND% buynow.production.store-web.dynamics.com, production.store-web.dynamics.com, account.microsoft.com
