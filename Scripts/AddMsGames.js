@@ -10,18 +10,10 @@
  * - 访问 https://addmsgames.com/?region=NG → 直接执行尼区加购
  * - 访问 https://addmsgames.com/?region=AR → 直接执行阿区加购
  *
- * PersistentStore Key 说明：
- * - 美区 MUID: cart-us-x-authorization-muid
- * - 美区 CV:   cart-us-ms-cv
- * - 美区 列表: XboxProductList-US
- *
- * - 尼区 MUID: cart-ng-x-authorization-muid
- * - 尼区 CV:   cart-ng-ms-cv
- * - 尼区 列表: XboxProductList-NG
- *
- * - 阿区 MUID: cart-ar-x-authorization-muid
- * - 阿区 CV:   cart-ar-ms-cv
- * - 阿区 列表: XboxProductList-AR
+ * PersistentStore Key 说明（三区共用，与 NewAddToCart_Web.js 完全一致）：
+ * - MUID: cart-x-authorization-muid
+ * - CV:   cart-ms-cv
+ * - 列表: XboxProductList
  *
  * 流程：
  * 1. GET 读取远程当前组（服务端加锁，带 market 参数区分三区）
