@@ -1,5 +1,5 @@
 #!name=Xbox Web Controller
-#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空本地 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId\n4. 访问 https://syncxbox.com -> 从云端同步数据并清理云端队列
+#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空本地 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId\n4. 访问 https://syncxbox.com -> 从云端同步数据并清理云端队列\n5. 访问 https://addmsgames.com -> 多区域加购选择界面（美区/尼区/阿区）
 #!author=Ah Long & XXhaos
 #!category=XBOX
 
