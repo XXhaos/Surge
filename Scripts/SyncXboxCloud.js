@@ -28,41 +28,63 @@ function renderUI(title, message, type = "success") {
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
   <title>${escapeHTML(title)}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+SC:wght@400;500&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body {
-      margin: 0; min-height: 100vh; display: flex; align-items: center;
-      justify-content: center; background: #0f1115; color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
-      padding: 20px;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: #0b0b0b; color: #ddd;
+      font-family: 'Noto Sans SC', sans-serif;
+      padding: 24px 18px;
+      -webkit-font-smoothing: antialiased;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16,124,16,0.10) 0%, transparent 60%);
     }
     .card {
-      width: 100%; max-width: 560px; background: #171a21; border-radius: 16px;
-      border: 1px solid #252a35; border-top: 5px solid ${color};
-      padding: 24px 22px 20px; box-sizing: border-box;
+      width: 100%; max-width: 520px;
+      background: #141414;
+      border: 1px solid #222;
+      border-top: 3px solid ${color};
+      border-radius: 4px;
+      padding: 24px 20px 20px;
     }
-    h1 { margin: 0 0 14px; font-size: 22px; color: ${color}; }
-    .msg { color: #cfd6e4; font-size: 14px; line-height: 1.7; word-break: break-word; }
-    .msg p { margin: 0 0 10px; }
-    .msg ul { margin: 10px 0 0; padding-left: 20px; text-align: left; }
-    .msg li { margin: 6px 0; }
-    .sub { color: #8e99ab; font-size: 12px; margin-top: 14px; }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px; font-weight: 700; letter-spacing: 1px;
+      color: #fff; margin-bottom: 16px;
+    }
+    .msg { font-size: 13px; line-height: 1.8; color: #aaa; word-break: break-word; }
+    .msg p { margin-bottom: 8px; }
+    .msg b { color: #ddd; }
+    .msg ul { margin: 10px 0 0; padding-left: 18px; }
+    .msg li { margin: 5px 0; color: #888; font-size: 12px; font-family: monospace; }
+    .footer {
+      margin-top: 18px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sub { font-size: 11px; color: #333; letter-spacing: 1.5px; text-transform: uppercase; }
     button {
-      margin-top: 18px; border: none; background: ${color};
-      color: white; padding: 10px 22px; border-radius: 999px; font-size: 14px;
+      border: 1px solid ${color}; background: transparent;
+      color: ${color}; padding: 8px 20px; border-radius: 3px;
+      font-size: 13px; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; letter-spacing: 1px; cursor: pointer;
+      transition: background .2s, color .2s;
     }
+    button:hover { background: ${color}; color: #fff; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>${escapeHTML(title)}</h1>
+    <div class="card-title">${escapeHTML(title)}</div>
     <div class="msg">${message}</div>
-    <div class="sub">SyncXbox Cloud Queue</div>
-    <button onclick="history.back()">确定</button>
+    <div class="footer">
+      <span class="sub">Sync Xbox Cloud</span>
+      <button onclick="history.back()">确定</button>
+    </div>
   </div>
 </body>
 </html>`;
