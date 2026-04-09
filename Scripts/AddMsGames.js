@@ -403,14 +403,11 @@ function runCart(regionCode) {
       .filter(Boolean);
   }
 
-  function buildResultPage(ngnStr, failedNames) {
+  function buildResultPage(failedNames) {
     const sc = results.success.length;
     const fc = results.failure.length;
     const failedHtml = failedNames.length
       ? `<div class="failed-box"><b>加购失败的游戏：</b><ul>${failedNames.map(n => `<li>${n}</li>`).join("")}</ul></div>`
-      : "";
-    const priceHtml = ngnStr
-      ? `<div class="price-box" style="border-color:${color}">游戏总价 <span style="color:${color}">${ngnStr}</span></div>`
       : "";
     return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -431,8 +428,6 @@ function runCart(regionCode) {
   .stat-num{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700}
   .stat-lbl{font-size:11px;color:#555;margin-top:2px;letter-spacing:.5px}
   .s-ok{color:#52b043}.s-err{color:#e05050}
-  .price-box{background:#141414;border:1px solid;border-radius:3px;padding:12px 16px;margin-bottom:14px;font-size:14px}
-  .price-box span{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-left:8px}
   .failed-box{background:#1a0e0e;border:1px solid #3a1a1a;border-radius:3px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#e05050}
   .failed-box ul{margin-top:8px;padding-left:18px;line-height:1.8}
   .source{font-size:11px;color:#444;margin-bottom:14px;letter-spacing:.5px}
@@ -451,7 +446,6 @@ function runCart(regionCode) {
   <div class="stat"><div class="stat-num s-err">${fc}</div><div class="stat-lbl">失败</div></div>
   <div class="stat"><div class="stat-num" style="color:#888">${sc+fc}</div><div class="stat-lbl">合计</div></div>
 </div>
-${priceHtml}
 ${failedHtml}
 <div class="source">来源: ${sourceLabel}</div>
 <div class="logs"><ul>${logBuffer.join("")}</ul></div>
@@ -463,15 +457,14 @@ ${failedHtml}
     const fc = results.failure.length;
     const sc = results.success.length;
 
-    const finish = (ngnStr = "", failedNames = []) => {
-      const priceNote = ngnStr ? ` | ${ngnStr}` : "";
-      const sub = fc === 0 ? `成功: ${sc}${priceNote}` : `成功: ${sc} / 失败: ${fc}${priceNote}`;
+    const finish = (failedNames = []) => {
+      const sub = fc === 0 ? `成功: ${sc}` : `成功: ${sc} / 失败: ${fc}`;
       $notification.post(`🛒 Xbox ${flag}${label} 加购完成`, sub, `来源: ${sourceLabel}`);
       $done({
         response: {
           status: 200,
           headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" },
-          body: buildResultPage(ngnStr, failedNames)
+          body: buildResultPage(failedNames)
         }
       });
     };
@@ -492,9 +485,7 @@ ${failedHtml}
       }, (_e, _r, commitData) => {
         let info = {};
         try { info = JSON.parse(commitData || "{}"); } catch (_) {}
-        const total = info.groupNGN ?? info.successNGN ?? 0;
-        const ngnStr = total > 0 ? `${total.toFixed(2)} ${CURRENCY}` : "";
-        finish(ngnStr, info.failedNames || []);
+        finish(info.failedNames || []);
       });
     } else {
       try {
