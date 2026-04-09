@@ -33,9 +33,9 @@ let useRemote = false;
 
 function log(type, message, detail = "") {
   const icon  = type === "success" ? "✅" : (type === "error" ? "❌" : "ℹ️");
-  const color = type === "success" ? "green" : (type === "error" ? "red" : "#666");
+  const color = type === "success" ? "#52b043" : (type === "error" ? "#e05050" : "#777");
   console.log(`${icon} ${message} ${detail}`);
-  logBuffer.push(`<div style="color:${color}; border-bottom:1px solid #eee; padding:5px;">${icon} ${message} <small>${detail}</small></div>`);
+  logBuffer.push(`<li style="color:${color};padding:6px 0;border-bottom:1px solid #1e1e1e">${icon} ${message} <small style="opacity:.6">${detail}</small></li>`);
 }
 
 const generateRiskSessionId = () =>
@@ -82,10 +82,10 @@ function finalizeAndClean() {
       : `成功: ${successCount} / 失败: ${failureCount}${priceNote}`;
 
     const failedHtml = failedNames.length > 0
-      ? `<div style="color:red;margin-top:10px;"><b>加购失败的游戏：</b><ul>${failedNames.map(n => `<li>${n}</li>`).join('')}</ul></div>`
+      ? `<div class="failed-box"><b>加购失败的游戏：</b><ul>${failedNames.map(n => `<li>${n}</li>`).join('')}</ul></div>`
       : '';
     const priceHtml = ngnStr
-      ? `<div style="margin-top:10px;font-weight:bold;">游戏总价: ${ngnStr}</div>`
+      ? `<div class="price-box">游戏总价 <span>${ngnStr}</span></div>`
       : '';
 
     $notification.post(
@@ -93,7 +93,48 @@ function finalizeAndClean() {
       notifSubtitle,
       `来源: ${sourceLabel}`
     );
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Xbox Cart</title></head><body style="font-family:sans-serif;padding:20px;"><h3>执行结果: 成功 ${successCount} / 失败 ${failureCount} | 来源: ${sourceLabel}</h3>${priceHtml}${failedHtml}<div style="background:#f9f9f9;padding:10px;margin-top:10px;">${logBuffer.join("")}</div></body></html>`;
+    const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Xbox Cart · 尼区</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+SC:wght@400;500&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0b0b0b;color:#ddd;font-family:'Noto Sans SC',sans-serif;padding:24px 18px;max-width:520px;margin:0 auto;-webkit-font-smoothing:antialiased}
+  .header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .flag{font-size:28px}
+  .title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:1px}
+  .stats{display:flex;gap:10px;margin-bottom:18px}
+  .stat{flex:1;background:#141414;border:1px solid #222;border-radius:3px;padding:12px;text-align:center}
+  .stat-num{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700}
+  .stat-lbl{font-size:11px;color:#555;margin-top:2px;letter-spacing:.5px}
+  .s-ok{color:#52b043}.s-err{color:#e05050}
+  .price-box{background:#141414;border:1px solid #333;border-radius:3px;padding:12px 16px;margin-bottom:14px;font-size:14px}
+  .price-box span{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#52b043;margin-left:8px}
+  .failed-box{background:#1a0e0e;border:1px solid #3a1a1a;border-radius:3px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#e05050}
+  .failed-box ul{margin-top:8px;padding-left:18px;line-height:1.8}
+  .source{font-size:11px;color:#444;margin-bottom:14px;letter-spacing:.5px}
+  .logs{background:#111;border-radius:3px;padding:10px 14px}
+  .logs ul{list-style:none;font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="flag">🇳🇬</span>
+  <span class="title">尼区 · 加购完成</span>
+</div>
+<div class="stats">
+  <div class="stat"><div class="stat-num s-ok">${successCount}</div><div class="stat-lbl">成功</div></div>
+  <div class="stat"><div class="stat-num s-err">${failureCount}</div><div class="stat-lbl">失败</div></div>
+  <div class="stat"><div class="stat-num" style="color:#888">${successCount + failureCount}</div><div class="stat-lbl">合计</div></div>
+</div>
+${priceHtml}${failedHtml}
+<div class="source">来源: ${sourceLabel}</div>
+<div class="logs"><ul>${logBuffer.join("")}</ul></div>
+</body>
+</html>`;
     $done({ response: { status: 200, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" }, body: html } });
   };
 
