@@ -191,13 +191,18 @@ function sendRequest() {
 
   $httpClient.put({ url: API_URL, headers: HEADERS, body: JSON.stringify(bodyObj) }, (error, response) => {
     const idStr = `${productId}`;
+    // 显示标签（序号+游戏名）和现价，取不到时回退到 bigId
+    const priceNGN = (_remoteGroupRaw && key && _remoteGroupRaw[key]?.PriceNGN)
+      ? ` | NGN ${Number(_remoteGroupRaw[key].PriceNGN).toFixed(2)}`
+      : '';
+    const displayLabel = key ? `${key}${priceNGN}` : idStr;
     if (error || response.status !== 200) {
       results.failure.push(idStr);
-      log("error", "失败", idStr);
+      log("error", "失败", displayLabel);
     } else {
       results.success.push(idStr);
       if (key) successKeys.push(key);
-      log("success", "成功", idStr);
+      log("success", "成功", displayLabel);
     }
     currentIndex++;
     setTimeout(sendRequest, 50);
