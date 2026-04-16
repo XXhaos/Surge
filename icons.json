@@ -4,11 +4,11 @@
   "icons": [
     {
       "name": "Claude",
-      "url": "https://github.com/anybodyiskiller-cpu/icons-escapism/blob/main/icons/claude.png"
+      "url": "https://raw.githubusercontent.com/anybodyiskiller-cpu/icons-escapism/refs/heads/main/icons/claude.png"
     },
     {
       "name": "Spark",
-      "url": "https://github.com/dragonisheep/icon/blob/main/icons/spark.png"
+      "url": "https://raw.githubusercontent.com/dragonisheep/icon/main/icons/spark.png"
     },
   ]
 }
