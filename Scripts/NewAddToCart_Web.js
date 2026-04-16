@@ -16,8 +16,8 @@ const LOCALE = "en-ng";
 const FRIENDLY_NAME = `cart-${MARKET}`;
 const CLIENT_CONTEXT = { client: "UniversalWebStore.Cart", deviceType: "Pc" };
 
-const REMOTE_READ_URL   = 'https://locvps.dragonisheep.com/surge?token=xbox123';
-const REMOTE_COMMIT_URL = 'https://locvps.dragonisheep.com/surge/commit?token=xbox123';
+const REMOTE_READ_URL   = 'https://xbox-bot.biubiubiu-lalala.workers.dev/surge?token=xbox123';
+const REMOTE_COMMIT_URL = 'https://xbox-bot.biubiubiu-lalala.workers.dev/surge/commit?token=xbox123';
 const LOCAL_KEY         = 'XboxProductList';
 
 const MUID  = $persistentStore.read("cart-x-authorization-muid");
