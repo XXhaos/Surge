@@ -4,8 +4,8 @@
  * 顶部时间戳锁防止 Surge 规则重复触发脚本
  */
 
-const readUrl  = 'https://locvps.dragonisheep.com/surge?token=xbox123';
-const commitUrl = 'https://locvps.dragonisheep.com/surge/commit?token=xbox123';
+const readUrl  = 'https://xbox-bot.biubiubiu-lalala.workers.dev/surge?token=xbox123';
+const commitUrl = 'https://xbox-bot.biubiubiu-lalala.workers.dev/surge/commit?token=xbox123';
 const storeKey = 'XboxProductList';
 
 function escapeHTML(str) {
