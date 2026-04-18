@@ -101,6 +101,13 @@ function appendHistory(entry) {
             if (Array.isArray(parsed)) history = parsed;
         } catch (e) { history = []; }
     }
+
+    // 去重：相同 cartId 的记录不重复写入
+    if (history.some(h => h.cartId === entry.cartId)) {
+        console.log(`[history] SKIP: cartId=${entry.cartId} 已存在于历史中`);
+        return;
+    }
+
     history.push(entry);
     if (history.length > MAX_HISTORY) history = history.slice(-MAX_HISTORY);
     $persistentStore.write(JSON.stringify(history), "cartId_history");
