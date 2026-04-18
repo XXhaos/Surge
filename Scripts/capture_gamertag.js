@@ -19,7 +19,7 @@ const now = Date.now();
 
 const PAIR_WINDOW_MS = 30000;
 const MAX_QUEUE = 20;
-const MAX_HISTORY = 100;
+const MAX_HISTORY = 10;
 
 if (peoplePattern.test(url)) {
     if (!$response.body) {
