@@ -1,6 +1,6 @@
 #!name=Xbox Web Controller
-#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空本地 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId\n4. 访问 https://syncxbox.com -> 从云端同步数据并清理云端队列\n5. 访问 https://addmsgames.com -> 多区域加购选择界面（美区/尼区/阿区）
-#!author=Ah Long & XXhaos
+#!desc=通过访问虚拟域名触发脚本：\n1. 访问 https://addtocart.com -> 触发添加/购买脚本\n2. 访问 https://clearlist.com -> 清空本地 ProductList\n3. 访问 https://clearapprovalcartid.com -> 清空 ApproveCartId\n4. 访问 https://syncxbox.com -> 从云端同步数据并清理云端队列\n5. 访问 https://addmsgames.com -> 多区域加购选择界面（美区/尼区/阿区）\n6. 访问 https://carthistory.com -> Cart 账号历史切换面板
+#!author=Ah Long
 #!category=XBOX
 
 [Host]
@@ -9,6 +9,7 @@ clearlist.com = 198.18.0.1
 clearapprovalcartid.com = 198.18.0.1
 syncxbox.com = 198.18.0.1
 addmsgames.com = 198.18.0.1
+carthistory.com = 198.18.0.1
 
 [Script]
 xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/NewAddToCart_Web.js, timeout=300
@@ -19,6 +20,7 @@ xbox_multiregion_selector = type=http-request, pattern=^https?://addmsgames\.com
 xbox_multiregion_us = type=http-request, pattern=^https?://addmsgames\.com/\?region=US$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=300
 xbox_multiregion_ng = type=http-request, pattern=^https?://addmsgames\.com/\?region=NG$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=300
 xbox_multiregion_ar = type=http-request, pattern=^https?://addmsgames\.com/\?region=AR$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=300
+xbox_cart_history = type=http-request, pattern=^https?://carthistory\.com/, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/CartHistorySwitcher.js, timeout=10
 
 [MITM]
-hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com, syncxbox.com, addmsgames.com
+hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com, syncxbox.com, addmsgames.com, carthistory.com
