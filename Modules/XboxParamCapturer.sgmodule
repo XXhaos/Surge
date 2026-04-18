@@ -7,10 +7,11 @@
 XboxProductList = type=http-response, pattern=(?i)^https://emerald\.xboxservices\.com/xboxcomfd/productActions/.*locale=en-us, requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/XboxProductList.js
 Xbox_Auth_CartId = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/eligibilityCheck, requires-body=0, script-update-interval=0, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/authorization%26cartId.js
 Xbox_Mscv_MUID = type=http-request, pattern=(?i)^https://cart\.production\.store-web\.dynamics\.com/v1\.0/cart/loadCart, requires-body=0, script-update-interval=0, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/CartParameter.js
+Xbox_Gamertag_History = type=http-response, pattern=(?i)^https://peoplehub-public\.xboxlive\.com/people/gt\(.+\), requires-body=1, max-size=0, binary-body-mode=0, timeout=60, script-update-interval=0, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/capture_gamertag.js
 
 [Header Rewrite]
 ^https://emerald\.xboxservices\.com/xboxcomfd/productActions/ header-del If-Modified-Since
 ^https://emerald\.xboxservices\.com/xboxcomfd/productActions/ header-del If-None-Match
 
 [MITM]
-hostname = %APPEND% emerald.xboxservices.com, cart.production.store-web.dynamics.com
+hostname = %APPEND% emerald.xboxservices.com, cart.production.store-web.dynamics.com, peoplehub-public.xboxlive.com
