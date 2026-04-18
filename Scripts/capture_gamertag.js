@@ -2,24 +2,14 @@
  * Surge 脚本：捕获 peoplehub 响应中的 gamertag
  *
  * 功能：
- *   - 保持原有：维护最新 gamertag 到 $persistentStore.gamertag
- *   - 新增：把每次捕获追加到 gamertag_records 数组（相邻相同值去重）
- *
- * gamertag_records 结构：[{gamertag, ts}, ...]
- *   - 匹配由网页脚本动态完成，本脚本不做任何配对
- *
- * Surge 配置：
- * [Script]
- * capture_gamertag = type=http-response, pattern=^https:\/\/peoplehub-public\.xboxlive\.com\/people\/gt\(.+\), requires-body=true, script-path=xxx.js
- *
- * [MITM]
- * hostname = %APPEND% peoplehub-public.xboxlive.com
+ *   - 维护最新 gamertag 到 $persistentStore.gamertag
+ *   - 每次捕获都追加到 gamertag_records 数组（不去重）
  */
 
 const peoplePattern = /^https:\/\/peoplehub-public\.xboxlive\.com\/people\/gt\(.+\)/;
 const url = $request.url;
 
-const MAX_RECORDS = 30;   // gamertag 记录保留最近 30 条
+const MAX_RECORDS = 30;    // tag 记录保留最近 30 条
 
 if (peoplePattern.test(url)) {
     if (!$response.body) {
@@ -34,23 +24,15 @@ if (peoplePattern.test(url)) {
             } else {
                 const now = Date.now();
 
-                // 更新 gamertag 主 key（保持原有行为）
                 if (gamertag !== $persistentStore.read("gamertag")) {
                     $persistentStore.write(gamertag, "gamertag");
                     console.log(`Stored gamertag: ${gamertag}`);
-                    $notification.post(
-                        "Surge 信息存储",
-                        "已捕获 gamertag",
-                        `gamertag: ${gamertag}`
-                    );
                 }
 
-                // 追加到 gamertag_records
                 appendGamertagRecord({ gamertag, ts: now });
             }
         } catch (error) {
             console.log(`Error (gamertag): ${error}`);
-            $notification.post("Surge 脚本错误", "gamertag 捕获失败", `${error}`);
         }
     }
 }
