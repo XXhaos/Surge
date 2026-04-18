@@ -11,7 +11,7 @@ const url = $request.url;
 
 const PAIR_WINDOW_MS = 30000;
 const MAX_QUEUE = 20;
-const MAX_HISTORY = 100;
+const MAX_HISTORY = 10;
 
 if ($request.method === "PUT" && pattern.test(url)) {
     try {
