@@ -1,23 +1,18 @@
 /**
  * Surge 脚本：捕获 cart 请求的 Authorization 和 cartId
- * 并在同一时刻根据最近捕获的 gamertag 写入 cartId_history
  *
- * 保留原有功能：
- *   - 始终在 $persistentStore 中维护最新的 authorization 和 cartId
+ * 功能：
+ *   - 保持原有：始终在 $persistentStore 中维护最新的 authorization 和 cartId
+ *   - 新增：把每次捕获追加到 cart_records 数组（cartId 去重）
  *
- * 历史记录逻辑：
- *   - 读取 gamertag_snapshot（由 gamertag 脚本写入，格式 {gamertag, ts}）
- *   - 若快照时间在 GAMERTAG_FRESHNESS_MS 窗口内 → 用它 + 本次 cartId/auth 写入历史
- *   - 若快照过旧或不存在 → 跳过，不写入（宁可漏记也不错记）
- *   - 相同 cartId 的记录不重复写入
+ * cart_records 结构：[{cartId, authorization, ts}, ...]
+ *   - 匹配由网页脚本动态完成，本脚本不做任何配对
  */
 
 const pattern = /^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/eligibilityCheck\?/;
 const url = $request.url;
 
-// gamertag 快照"新鲜度"窗口：超出此时间认为不可信
-const GAMERTAG_FRESHNESS_MS = 10000;  // 10 秒
-const MAX_HISTORY = 10;
+const MAX_RECORDS = 20;   // cart 记录保留最近 20 条
 
 if ($request.method === "PUT" && pattern.test(url)) {
     try {
@@ -36,9 +31,9 @@ if ($request.method === "PUT" && pattern.test(url)) {
             console.log(`Stored cartId: ${cartId}`);
         }
 
-        // 尝试写入历史
+        // 新增：追加到 cart_records（cartId 去重）
         if (cartId && authorization) {
-            tryAppendHistory(cartId, authorization, now);
+            appendCartRecord({ cartId, authorization, ts: now });
         }
 
         $notification.post(
@@ -55,74 +50,28 @@ if ($request.method === "PUT" && pattern.test(url)) {
     }
 }
 
-function tryAppendHistory(cartId, authorization, now) {
-    // 读取 gamertag 快照
-    const raw = $persistentStore.read("gamertag_snapshot");
-    if (!raw) {
-        console.log(`[history] SKIP: gamertag 快照不存在（gamertag 脚本还没捕获过）`);
-        return;
-    }
-
-    let snapshot;
-    try {
-        snapshot = JSON.parse(raw);
-    } catch (e) {
-        console.log(`[history] SKIP: gamertag 快照解析失败`);
-        return;
-    }
-
-    const { gamertag, ts } = snapshot || {};
-    if (!gamertag || !ts) {
-        console.log(`[history] SKIP: gamertag 快照字段不完整`);
-        return;
-    }
-
-    // 检查快照新鲜度
-    const age = now - ts;
-    console.log(`[history] gamertag 快照: ${gamertag}, 距今 ${age}ms`);
-
-    if (age > GAMERTAG_FRESHNESS_MS) {
-        console.log(`[history] SKIP: gamertag 快照过旧 (${age}ms > ${GAMERTAG_FRESHNESS_MS}ms)`);
-        return;
-    }
-    if (age < 0) {
-        console.log(`[history] SKIP: gamertag 快照时间异常（在未来）`);
-        return;
-    }
-
-    // 读取历史
-    let history = [];
-    const histRaw = $persistentStore.read("cartId_history");
-    if (histRaw) {
+function appendCartRecord(entry) {
+    let records = [];
+    const raw = $persistentStore.read("cart_records");
+    if (raw) {
         try {
-            const parsed = JSON.parse(histRaw);
-            if (Array.isArray(parsed)) history = parsed;
-        } catch (e) { history = []; }
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) records = parsed;
+        } catch (e) { records = []; }
     }
 
     // 去重：相同 cartId 不重复记录
-    if (history.some(h => h.cartId === cartId)) {
-        console.log(`[history] SKIP: cartId=${cartId} 已存在于历史中`);
+    if (records.some(r => r.cartId === entry.cartId)) {
+        console.log(`[cart] SKIP: cartId=${entry.cartId} 已存在`);
         return;
     }
 
-    const entry = {
-        gamertag,
-        cartId,
-        authorization,
-        timestamp: new Date().toISOString()
-    };
+    records.push(entry);
+    if (records.length > MAX_RECORDS) records = records.slice(-MAX_RECORDS);
+    $persistentStore.write(JSON.stringify(records), "cart_records");
 
-    history.push(entry);
-    if (history.length > MAX_HISTORY) history = history.slice(-MAX_HISTORY);
-    $persistentStore.write(JSON.stringify(history), "cartId_history");
-
-    console.log(`[history] ✅ 写入成功! gamertag=${gamertag}, cartId=${cartId}, total=${history.length}`);
-    $notification.post(
-        "Surge 历史记录",
-        "新三元组已记入",
-        `${gamertag}`
-    );
+    console.log(`[cart] ✅ 已记录 cartId=${entry.cartId}, total=${records.length}`);
+    $notification.post("Surge 历史记录", "已记录 cart 信息", "");
 }
 
 $done({});
