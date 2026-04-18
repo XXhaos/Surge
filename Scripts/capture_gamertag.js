@@ -19,7 +19,7 @@
 const peoplePattern = /^https:\/\/peoplehub-public\.xboxlive\.com\/people\/gt\(.+\)/;
 const url = $request.url;
 
-const MAX_RECORDS = 20;   // gamertag 记录保留最近 20 条
+const MAX_RECORDS = 10;   // gamertag 记录保留最近 20 条
 
 if (peoplePattern.test(url)) {
     if (!$response.body) {
@@ -63,15 +63,6 @@ function appendGamertagRecord(entry) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) records = parsed;
         } catch (e) { records = []; }
-    }
-
-    // 相邻去重：如果最后一条就是同一个 gamertag，只更新它的 ts，不新增
-    // 这样反复刷新同账号不会产生大量冗余记录
-    if (records.length > 0 && records[records.length - 1].gamertag === entry.gamertag) {
-        records[records.length - 1].ts = entry.ts;
-        $persistentStore.write(JSON.stringify(records), "gamertag_records");
-        console.log(`[gamertag] 更新末条时间戳: ${entry.gamertag}`);
-        return;
     }
 
     records.push(entry);
