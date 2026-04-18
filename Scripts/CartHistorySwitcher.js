@@ -1,18 +1,25 @@
 /**
  * Xbox Cart History Switcher
- * 远程路径: https://raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/CartHistorySwitcher.js
  *
  * 功能：
- * 1. 访问 https://carthistory.com/ → 展示所有历史 gamertag 卡片列表
- * 2. 点击某条记录 → 访问 https://carthistory.com/?action=apply&index=N
- *    → 将该条的 cartId / authorization / gamertag 覆盖到 $persistentStore
- * 3. 切换后自动跳回列表页，当前激活的卡片会高亮显示
+ * 1. 访问 https://carthistory.com/ → 按时间戳最近邻匹配 cart 和 gamertag，展示卡片
+ * 2. 点击切换 → 覆盖 $persistentStore 中的 cartId / authorization / gamertag
+ *
+ * 匹配策略（核心）：
+ *   - 读取 cart_records 和 gamertag_records 两个数组
+ *   - 对每条 cart，在 gamertag_records 中找时间戳绝对差最小的一条
+ *   - 若最小差值超过 MATCH_WINDOW_MS，则该 cart 的 gamertag 显示为 "(未知)"
+ *   - 不在存储里记录"已匹配的三元组"，每次页面刷新都重新计算
  */
 
-const HISTORY_KEY  = "cartId_history";
-const CART_KEY     = "cartId";
-const AUTH_KEY     = "authorization";
-const GAMERTAG_KEY = "gamertag";
+const CART_KEY        = "cartId";
+const AUTH_KEY        = "authorization";
+const GAMERTAG_KEY    = "gamertag";
+const CART_RECORDS    = "cart_records";
+const GAMERTAG_RECORDS = "gamertag_records";
+
+// 匹配窗口：cart 和 gamertag 时间差超过此值就认为无法配对
+const MATCH_WINDOW_MS = 60000;  // 60 秒，按需调整
 
 const url = $request.url;
 const parsed = new URL(url);
@@ -25,9 +32,9 @@ if (action === "apply" && indexStr !== null) {
     showList();
 }
 
-// ==================== 读取历史 ====================
-function readHistory() {
-    const raw = $persistentStore.read(HISTORY_KEY);
+// ==================== 读取 ====================
+function readRecords(key) {
+    const raw = $persistentStore.read(key);
     if (!raw) return [];
     try {
         const arr = JSON.parse(raw);
@@ -37,14 +44,34 @@ function readHistory() {
     }
 }
 
+// ==================== 最近邻匹配 ====================
+function matchCartToGamertag(cart, gamertagRecords) {
+    if (!gamertagRecords.length) return { gamertag: "(未知)", diff: null };
+
+    let best = null;
+    let bestDiff = Infinity;
+    for (const g of gamertagRecords) {
+        const diff = Math.abs(cart.ts - g.ts);
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            best = g;
+        }
+    }
+
+    if (bestDiff > MATCH_WINDOW_MS) {
+        return { gamertag: "(未知)", diff: bestDiff };
+    }
+    return { gamertag: best.gamertag, diff: bestDiff };
+}
+
 // ==================== 工具函数 ====================
-function formatTimestamp(iso) {
+function formatTimestamp(ms) {
     try {
-        const d = new Date(iso);
+        const d = new Date(ms);
         const pad = n => String(n).padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     } catch (e) {
-        return iso;
+        return String(ms);
     }
 }
 
@@ -71,15 +98,28 @@ function respondHtml(body) {
 
 // ==================== 展示列表 ====================
 function showList() {
-    const history = readHistory();
-    const currentCartId   = $persistentStore.read(CART_KEY) || "";
-    const currentGamertag = $persistentStore.read(GAMERTAG_KEY) || "";
+    const cartRecords = readRecords(CART_RECORDS);
+    const gamertagRecords = readRecords(GAMERTAG_RECORDS);
+    const currentCartId = $persistentStore.read(CART_KEY) || "";
 
-    // 倒序（最新在前），同时记录在原数组中的 index 用于切换
-    const reversed = history.map((e, i) => ({ entry: e, originalIndex: i })).reverse();
+    // 为每条 cart 动态匹配 gamertag，生成展示数据
+    const display = cartRecords.map((cart, i) => {
+        const match = matchCartToGamertag(cart, gamertagRecords);
+        return {
+            originalIndex: i,
+            cartId: cart.cartId,
+            authorization: cart.authorization,
+            ts: cart.ts,
+            gamertag: match.gamertag,
+            matchDiff: match.diff
+        };
+    });
 
-    const cards = reversed.map(({ entry, originalIndex }) => {
-        const isActive = entry.cartId === currentCartId;
+    // 倒序（最新在前）
+    const reversed = [...display].reverse();
+
+    const cards = reversed.map(d => {
+        const isActive = d.cartId === currentCartId;
         const cardStyle = isActive
             ? 'border:2px solid #10b981; background:#f0fdf4;'
             : 'border:1px solid #e5e7eb; background:#fff;';
@@ -88,29 +128,22 @@ function showList() {
             : '';
         const button = isActive
             ? '<button disabled style="padding:8px 16px; background:#d1d5db; color:#6b7280; border:none; border-radius:6px; font-weight:bold; cursor:not-allowed;">已激活</button>'
-            : `<a href="https://carthistory.com/?action=apply&index=${originalIndex}" style="text-decoration:none;"><button style="padding:8px 16px; background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">切换到此账号</button></a>`;
+            : `<a href="https://carthistory.com/?action=apply&index=${d.originalIndex}" style="text-decoration:none;"><button style="padding:8px 16px; background:#3b82f6; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">切换到此账号</button></a>`;
 
         return `
         <div style="${cardStyle} border-radius:8px; padding:16px; margin-bottom:12px;">
             <div style="font-size:18px; font-weight:bold; color:#111827;">
-                ${escapeHtml(entry.gamertag)}${activeBadge}
+                ${escapeHtml(d.gamertag)}${activeBadge}
             </div>
             <div style="font-size:13px; color:#6b7280; margin:6px 0 12px 0;">
-                ${escapeHtml(formatTimestamp(entry.timestamp))}
+                ${escapeHtml(formatTimestamp(d.ts))}
             </div>
             ${button}
         </div>`;
     }).join('');
 
-    const emptyHint = history.length === 0
-        ? '<div style="text-align:center; color:#6b7280; padding:40px; background:#fff; border-radius:8px;">暂无历史记录</div>'
-        : '';
-
-    const currentInfo = currentGamertag
-        ? `<div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
-               <div style="font-size:13px; color:#6b7280; margin-bottom:4px;">当前激活账号</div>
-               <div style="font-size:16px; font-weight:bold; color:#1e40af;">${escapeHtml(currentGamertag)}</div>
-           </div>`
+    const emptyHint = cartRecords.length === 0
+        ? '<div style="text-align:center; color:#6b7280; padding:40px; background:#fff; border-radius:8px;">暂无 cart 记录</div>'
         : '';
 
     const html = `<!DOCTYPE html>
@@ -123,8 +156,7 @@ function showList() {
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:20px; margin:0; background:#f3f4f6;">
 <div style="max-width:600px; margin:0 auto;">
     <h2 style="margin:0 0 20px 0; color:#111827;">🛒 Cart 账号历史</h2>
-    ${currentInfo}
-    <div style="margin-bottom:12px; color:#6b7280; font-size:14px;">共 ${history.length} 条历史记录（最新在前）</div>
+    <div style="margin-bottom:12px; color:#6b7280; font-size:14px;">共 ${cartRecords.length} 条记录（最新在前）</div>
     ${cards}
     ${emptyHint}
 </div>
@@ -136,25 +168,31 @@ function showList() {
 
 // ==================== 执行切换 ====================
 function applySwitch(index) {
-    const history = readHistory();
+    const cartRecords = readRecords(CART_RECORDS);
+    const gamertagRecords = readRecords(GAMERTAG_RECORDS);
 
-    if (!Number.isInteger(index) || index < 0 || index >= history.length) {
-        return showError("无效的记录索引", `index=${index}, 历史长度=${history.length}`);
+    if (!Number.isInteger(index) || index < 0 || index >= cartRecords.length) {
+        return showError("无效的记录索引", `index=${index}, 记录数=${cartRecords.length}`);
     }
 
-    const entry = history[index];
-    if (!entry || !entry.cartId || !entry.authorization) {
+    const cart = cartRecords[index];
+    if (!cart || !cart.cartId || !cart.authorization) {
         return showError("记录不完整", "该条记录缺少 cartId 或 authorization");
     }
 
-    // 覆盖 persistentStore 中的当前值
-    $persistentStore.write(entry.cartId, CART_KEY);
-    $persistentStore.write(entry.authorization, AUTH_KEY);
-    $persistentStore.write(entry.gamertag || "", GAMERTAG_KEY);
+    const match = matchCartToGamertag(cart, gamertagRecords);
+    const gamertag = match.gamertag;
+
+    // 覆盖 $persistentStore
+    $persistentStore.write(cart.cartId, CART_KEY);
+    $persistentStore.write(cart.authorization, AUTH_KEY);
+    if (gamertag && gamertag !== "(未知)") {
+        $persistentStore.write(gamertag, GAMERTAG_KEY);
+    }
 
     $notification.post(
         "✅ 账号切换成功",
-        `已切换到 ${entry.gamertag}`,
+        `已切换到 ${gamertag}`,
         ""
     );
 
@@ -170,7 +208,7 @@ function applySwitch(index) {
 <div style="max-width:500px; margin:80px auto; background:#fff; border-radius:12px; padding:32px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
     <div style="font-size:48px; margin-bottom:16px;">✅</div>
     <div style="font-size:20px; font-weight:bold; color:#10b981; margin-bottom:8px;">切换成功</div>
-    <div style="font-size:16px; color:#374151;">已切换到 <b>${escapeHtml(entry.gamertag)}</b></div>
+    <div style="font-size:16px; color:#374151;">已切换到 <b>${escapeHtml(gamertag)}</b></div>
     <div style="font-size:13px; color:#6b7280; margin-top:16px;">1 秒后自动返回列表...</div>
 </div>
 </body>
