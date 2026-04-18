@@ -19,7 +19,7 @@
 const peoplePattern = /^https:\/\/peoplehub-public\.xboxlive\.com\/people\/gt\(.+\)/;
 const url = $request.url;
 
-const MAX_RECORDS = 10;   // gamertag 记录保留最近 20 条
+const MAX_RECORDS = 20;   // gamertag 记录保留最近 20 条
 
 if (peoplePattern.test(url)) {
     if (!$response.body) {
