@@ -25,6 +25,9 @@ if ($request.method === "PUT" && pattern.test(url)) {
             $persistentStore.write(cartId, "cartId");
             console.log(`Stored cartId: ${cartId}`);
         }
+        
+        // ↓↓↓ 新增这一行：给历史记录脚本提供时间戳 ↓↓↓
+        $persistentStore.write(String(Date.now()), "history_cart_ts");
 
         // 发送通知，成功捕获并存储 Authorization 和 CartId
         $notification.post(
