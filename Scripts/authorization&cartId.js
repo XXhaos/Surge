@@ -12,7 +12,7 @@
 const pattern = /^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/eligibilityCheck\?/;
 const url = $request.url;
 
-const MAX_RECORDS = 20;   // cart 记录保留最近 20 条
+const MAX_RECORDS = 10;   // cart 记录保留最近 20 条
 
 if ($request.method === "PUT" && pattern.test(url)) {
     try {
