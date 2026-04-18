@@ -1,12 +1,12 @@
 /**
- * Surge 脚本：仅捕获 peoplehub 响应中的 gamertag，存入 $persistentStore
+ * Surge 脚本：捕获 peoplehub 响应中的 gamertag
  *
- * 两个用途：
- *   1. gamertag 这个 key：始终保持最新 gamertag（供其他脚本和 carthistory 页面使用）
- *   2. gamertag_snapshot 这个 key：{gamertag, ts} 格式，供 authorization&cartId.js
- *      在 cart 请求到达时用作历史记录的"当前 gamertag"依据
+ * 功能：
+ *   - 保持原有：维护最新 gamertag 到 $persistentStore.gamertag
+ *   - 新增：把每次捕获追加到 gamertag_records 数组（相邻相同值去重）
  *
- * 本脚本不再写入 cartId_history，也不再维护任何队列。
+ * gamertag_records 结构：[{gamertag, ts}, ...]
+ *   - 匹配由网页脚本动态完成，本脚本不做任何配对
  *
  * Surge 配置：
  * [Script]
@@ -18,6 +18,8 @@
 
 const peoplePattern = /^https:\/\/peoplehub-public\.xboxlive\.com\/people\/gt\(.+\)/;
 const url = $request.url;
+
+const MAX_RECORDS = 20;   // gamertag 记录保留最近 20 条
 
 if (peoplePattern.test(url)) {
     if (!$response.body) {
@@ -43,18 +45,39 @@ if (peoplePattern.test(url)) {
                     );
                 }
 
-                // 更新快照（带时间戳），供 cart 脚本使用
-                $persistentStore.write(JSON.stringify({
-                    gamertag: gamertag,
-                    ts: now
-                }), "gamertag_snapshot");
-                console.log(`[gamertag] 快照已更新: ${gamertag} @ ${now}`);
+                // 追加到 gamertag_records
+                appendGamertagRecord({ gamertag, ts: now });
             }
         } catch (error) {
             console.log(`Error (gamertag): ${error}`);
             $notification.post("Surge 脚本错误", "gamertag 捕获失败", `${error}`);
         }
     }
+}
+
+function appendGamertagRecord(entry) {
+    let records = [];
+    const raw = $persistentStore.read("gamertag_records");
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) records = parsed;
+        } catch (e) { records = []; }
+    }
+
+    // 相邻去重：如果最后一条就是同一个 gamertag，只更新它的 ts，不新增
+    // 这样反复刷新同账号不会产生大量冗余记录
+    if (records.length > 0 && records[records.length - 1].gamertag === entry.gamertag) {
+        records[records.length - 1].ts = entry.ts;
+        $persistentStore.write(JSON.stringify(records), "gamertag_records");
+        console.log(`[gamertag] 更新末条时间戳: ${entry.gamertag}`);
+        return;
+    }
+
+    records.push(entry);
+    if (records.length > MAX_RECORDS) records = records.slice(-MAX_RECORDS);
+    $persistentStore.write(JSON.stringify(records), "gamertag_records");
+    console.log(`[gamertag] ✅ 新增记录: ${entry.gamertag}, total=${records.length}`);
 }
 
 $done({});
