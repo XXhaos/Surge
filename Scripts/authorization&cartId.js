@@ -2,8 +2,9 @@
  * Surge 脚本：捕获 cart 请求的 Authorization 和 cartId
  *
  * 功能：
- *   - 保持原有：始终在 $persistentStore 中维护最新的 authorization 和 cartId
+ *   - 始终在 $persistentStore 中维护最新的 authorization 和 cartId
  *   - 把每次捕获追加到 cart_records 数组（cartId 去重）
+ *   - 只有真正新增 cart 记录时才弹通知，避免重复请求骚扰
  */
 
 const pattern = /^https:\/\/cart\.production\.store-web\.dynamics\.com\/v1\.0\/Cart\/eligibilityCheck\?/;
@@ -30,12 +31,6 @@ if ($request.method === "PUT" && pattern.test(url)) {
         if (cartId && authorization) {
             appendCartRecord({ cartId, authorization, ts: now });
         }
-
-        // 保留原始的这条通知
-        $notification.post(
-            "Surge 信息存储",
-            "已捕获并存储 authorization 和 cartId"
-        );
     } catch (error) {
         console.log(`Error capturing authorization & cartId: ${error}`);
     }
@@ -61,6 +56,12 @@ function appendCartRecord(entry) {
     $persistentStore.write(JSON.stringify(records), "cart_records");
 
     console.log(`[cart] ✅ 已记录 cartId=${entry.cartId}, total=${records.length}`);
+
+    // 只有真正新增时才弹通知
+    $notification.post(
+        "Surge 信息存储",
+        "已捕获并存储 authorization 和 cartId"
+    );
 }
 
 $done({});
