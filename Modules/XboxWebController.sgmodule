@@ -12,15 +12,15 @@ addmsgames.com = 198.18.0.1
 carthistory.com = 198.18.0.1
 
 [Script]
-xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/NewAddToCart_Web.js, timeout=300
-xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ClearXboxProductList_Web.js, timeout=10
-clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ClearApprovalCartId.js, timeout=10
-xbox_sync_cloud = type=http-request, pattern=^https?://syncxbox\.com/?$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/SyncXboxCloud.js, timeout=30
-xbox_multiregion_selector = type=http-request, pattern=^https?://addmsgames\.com/?$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=30
-xbox_multiregion_us = type=http-request, pattern=^https?://addmsgames\.com/\?region=US$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=300
-xbox_multiregion_ng = type=http-request, pattern=^https?://addmsgames\.com/\?region=NG$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=300
-xbox_multiregion_ar = type=http-request, pattern=^https?://addmsgames\.com/\?region=AR$, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/AddMsGames.js, timeout=300
-xbox_cart_history = type=http-request, pattern=^https?://carthistory\.com/, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/CartHistorySwitcher.js, timeout=10
+xbox_web_runner = type=http-request, pattern=^https?://addtocart\.com/?$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/NewAddToCart_Web.js, timeout=300
+xbox_clear_web = type=http-request, pattern=^https?://clearlist\.com/?$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/ClearXboxProductList_Web.js, timeout=10
+clear_cart_id = type=http-request, pattern=^https?://clearapprovalcartid\.com/?$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/ClearApprovalCartId.js, timeout=10
+xbox_sync_cloud = type=http-request, pattern=^https?://syncxbox\.com/?$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/SyncXboxCloud.js, timeout=30
+xbox_multiregion_selector = type=http-request, pattern=^https?://addmsgames\.com/?$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/AddMsGames.js, timeout=30
+xbox_multiregion_us = type=http-request, pattern=^https?://addmsgames\.com/\?region=US$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/AddMsGames.js, timeout=300
+xbox_multiregion_ng = type=http-request, pattern=^https?://addmsgames\.com/\?region=NG$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/AddMsGames.js, timeout=300
+xbox_multiregion_ar = type=http-request, pattern=^https?://addmsgames\.com/\?region=AR$, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/AddMsGames.js, timeout=300
+xbox_cart_history = type=http-request, pattern=^https?://carthistory\.com/, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/CartHistorySwitcher.js, timeout=10
 
 [MITM]
 hostname = %APPEND% addtocart.com, clearlist.com, clearapprovalcartid.com, syncxbox.com, addmsgames.com, carthistory.com
