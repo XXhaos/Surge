@@ -4,7 +4,7 @@
 #!author=Ah Long
 
 [Script]
-BuyRequestReplace = type=http-request, pattern=^https://buynow\.production\.store-web\.dynamics\.com/v1\.0/Cart/RequestParentalApproval, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/BuyRequestReplace.js, requires-body=1, max-size=0, binary-body-mode=0, script-update-interval=0
+BuyRequestReplace = type=http-request, pattern=^https://buynow\.production\.store-web\.dynamics\.com/v1\.0/Cart/RequestParentalApproval, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/BuyRequestReplace.js, requires-body=1, max-size=0, binary-body-mode=0, script-update-interval=0
 
 [MITM]
 hostname = %APPEND% buynow.production.store-web.dynamics.com
