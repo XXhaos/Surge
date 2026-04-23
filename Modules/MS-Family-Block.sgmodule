@@ -4,7 +4,7 @@
 #!author=Ah Long
 
 [Script]
-MS_Family_Block = type=http-request, pattern=^https://account\.microsoft\.com/family/api/buy/requests/complete(\?.*)?$, requires-body=1, max-size=0, script-path=https://dragonisheep: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@raw.githubusercontent.com/dragonisheep/Surge/refs/heads/master/Scripts/ms_family_block.js, script-update-interval=-1, timeout=10, debug=0
+MS_Family_Block = type=http-request, pattern=^https://account\.microsoft\.com/family/api/buy/requests/complete(\?.*)?$, requires-body=1, max-size=0, script-path=https://gitea.dragonisheep.com/XXhaos/Surge/raw/branch/master/Scripts/ms_family_block.js, script-update-interval=-1, timeout=10, debug=0
 
 [MITM]
 hostname = %APPEND% account.microsoft.com
