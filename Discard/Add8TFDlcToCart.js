@@ -1,6 +1,6 @@
 /**
  * Surge Script - 微软购物车批量添加
- * 特性：动态生成 riskSessionId111
+ * 特性：动态生成 riskSessionId
  */
 
 // ==== 配置项 ==== //
