@@ -151,11 +151,43 @@ function finalizeAndClean() {
   }
 }
 
+function doneWithPage(title, message, type = "warn") {
+  const color = type === "error" ? "#e05050" : type === "warn" ? "#e8a838" : "#52b043";
+  const icon  = type === "error" ? "❌" : type === "warn" ? "⚠️" : "✅";
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Xbox Cart · 尼区</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+SC:wght@400;500&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0b0b0b;color:#ddd;font-family:'Noto Sans SC',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 18px;-webkit-font-smoothing:antialiased}
+  .card{width:100%;max-width:420px;background:#141414;border:1px solid #222;border-top:3px solid ${color};border-radius:4px;padding:24px 20px 20px}
+  .icon{font-size:32px;margin-bottom:12px}
+  .title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:1px;margin-bottom:8px}
+  .msg{font-size:13px;color:#888;line-height:1.7}
+  .sub{margin-top:20px;font-size:11px;color:#2a2a2a;letter-spacing:1.5px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">${icon}</div>
+  <div class="title">${title}</div>
+  <div class="msg">${message}</div>
+  <div class="sub">Xbox Cart · 🇳🇬 尼区</div>
+</div>
+</body>
+</html>`;
+  $done({ response: { status: 200, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" }, body: html } });
+}
+
 function startTask() {
   if (!MUID || !MS_CV) {
     log("error", "缺少 MUID/CV");
     $notification.post("❌ Xbox 脚本错误", "缺少必要参数", "请检查 MUID 或 MS_CV");
-    finalizeAndClean();
+    doneWithPage("缺少必要参数", "未找到 MUID 或 MS-CV，请确认已正确写入：<br><br><code>cart-x-authorization-muid</code><br><code>cart-ms-cv</code>", "error");
     return;
   }
   if (productList.length === 0) {
@@ -167,9 +199,9 @@ function startTask() {
         url: REMOTE_COMMIT_URL,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ remaining: {} })
-      }, () => $done({}));
+      }, () => doneWithPage("暂无商品", `远程队列与本地列表均为空，无需加购。<br><br>来源: ${sourceLabel}`, "warn"));
     } else {
-      $done({});
+      doneWithPage("暂无商品", `远程队列与本地列表均为空，无需加购。<br><br>来源: ${sourceLabel}`, "warn");
     }
     return;
   }
