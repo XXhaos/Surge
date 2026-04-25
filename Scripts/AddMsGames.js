@@ -16,7 +16,7 @@
  * - 列表: XboxProductList
  *
  * 流程：
- * 1. GET 读取远程当前组（服务端加锁，带 market 参数区分三区）
+ * 1. GET 读取远程当前组（服务端加锁）
  * 2. 执行加购
  * 3. POST /surge/commit 提交结果
  * 4. 若远程无数据，回退到本地对应区域的 XboxProductList-{REGION}
@@ -62,8 +62,8 @@ const REGION_CONFIGS = {
   },
 };
 
-const REMOTE_BASE_READ   = "https://locvps.dragonisheep.com/surge?token=xbox123";
-const REMOTE_BASE_COMMIT = "https://locvps.dragonisheep.com/surge/commit?token=xbox123";
+const REMOTE_READ_URL   = 'https://xbox-bot.biubiubiu-lalala.workers.dev/surge?token=xbox123';
+const REMOTE_COMMIT_URL = 'https://xbox-bot.biubiubiu-lalala.workers.dev/surge/commit?token=xbox123';
 const CLIENT_CONTEXT     = { client: "UniversalWebStore.Cart", deviceType: "Pc" };
 const API_URL            = "https://cart.production.store-web.dynamics.com/cart/v1.0/cart/loadCart?cartType=consumer&appId=StoreWeb";
 
@@ -353,8 +353,6 @@ function runCart(regionCode) {
   const MUID  = $persistentStore.read(MUID_KEY);
   const MS_CV = $persistentStore.read(CV_KEY);
 
-  const REMOTE_READ_URL = `${REMOTE_BASE_READ}&market=${MARKET}`;
-  const COMMIT_URL      = `${REMOTE_BASE_COMMIT}&market=${MARKET}`;
 
   const HEADERS = {
     "content-type": "application/json",
@@ -397,7 +395,6 @@ function runCart(regionCode) {
   function parseProductList(raw) {
     let parsed; try { parsed = JSON.parse(raw || "{}"); } catch { parsed = {}; }
     return Object.keys(parsed)
-      .filter(k => /^product\d+$/.test(k))
       .sort((a, b) => toNum(a) - toNum(b))
       .map(k => { const n = normEntry(parsed[k]); return n ? { key: k, ...n } : null; })
       .filter(Boolean);
@@ -479,7 +476,7 @@ ${failedHtml}
       }
       log("info", fc === 0 ? "全部成功，提交 commit（弹出当前组）" : `${fc} 个失败，提交 commit（保留失败部分）`);
       $httpClient.post({
-        url: COMMIT_URL,
+        url: REMOTE_COMMIT_URL,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ remaining: failedProducts })
       }, (_e, _r, commitData) => {
@@ -493,7 +490,7 @@ ${failedHtml}
         for (const k of successKeys) {
           if (k && Object.prototype.hasOwnProperty.call(store, k)) delete store[k];
         }
-        const rem = Object.keys(store).filter(k => /^product\d+$/.test(k)).length;
+        const rem = Object.keys(store).filter(k => normEntry(store[k]) !== null).length;
         $persistentStore.write(JSON.stringify(store), LOCAL_KEY);
         log("info", "本地清理完成", `剩余: ${rem}`);
       } catch (e) { log("error", "清理异常", String(e)); }
@@ -529,18 +526,57 @@ ${failedHtml}
     });
   }
 
+  function doneWithPage(title, message, type = "warn") {
+    const color = type === "error" ? "#e05050" : type === "warn" ? "#e8a838" : "#52b043";
+    const icon  = type === "error" ? "❌" : type === "warn" ? "⚠️" : "✅";
+    const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Xbox · ${flag}${label}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+SC:wght@400;500&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0b0b0b;color:#ddd;font-family:'Noto Sans SC',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 18px;-webkit-font-smoothing:antialiased}
+  .card{width:100%;max-width:420px;background:#141414;border:1px solid #222;border-top:3px solid ${color};border-radius:4px;padding:24px 20px 20px}
+  .icon{font-size:32px;margin-bottom:12px}
+  .title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:1px;margin-bottom:8px}
+  .msg{font-size:13px;color:#888;line-height:1.7}
+  .footer{margin-top:20px;display:flex;align-items:center;justify-content:space-between}
+  .sub{font-size:11px;color:#2a2a2a;letter-spacing:1.5px;text-transform:uppercase}
+  a{display:inline-block;padding:8px 18px;border:1px solid ${color};color:${color};border-radius:3px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">${icon}</div>
+  <div class="title">${title}</div>
+  <div class="msg">${message}</div>
+  <div class="footer">
+    <span class="sub">Xbox · ${flag}${label}</span>
+    <a href="https://addmsgames.com">← 返回</a>
+  </div>
+</div>
+</body>
+</html>`;
+    $done({ response: { status: 200, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" }, body: html } });
+  }
+
   function startTask() {
     if (!MUID || !MS_CV) {
       $notification.post(`❌ Xbox ${label} 错误`, `缺少 MUID 或 CV`, `请写入 ${MUID_KEY} / ${CV_KEY}`);
-      $done({});
+      doneWithPage("缺少必要参数", `未找到 MUID 或 MS-CV，请确认已正确写入：<br><br><code>${MUID_KEY}</code><br><code>${CV_KEY}</code>`, "error");
       return;
     }
     if (productList.length === 0) {
       $notification.post(`⚠️ Xbox ${label}`, "列表为空，无需执行", `来源: ${sourceLabel}`);
       if (useRemote) {
-        $httpClient.post({ url: COMMIT_URL, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ remaining: {} }) }, () => $done({}));
+        $httpClient.post({ url: REMOTE_COMMIT_URL, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ remaining: {} }) }, () => {
+          doneWithPage("暂无商品", `远程队列与本地列表均为空，无需加购。<br><br>来源: ${sourceLabel}`, "warn");
+        });
       } else {
-        $done({});
+        doneWithPage("暂无商品", `远程队列与本地列表均为空，无需加购。<br><br>来源: ${sourceLabel}`, "warn");
       }
       return;
     }
