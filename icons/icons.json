@@ -4,15 +4,15 @@
   "icons": [
     {
       "name": "Claude",
-      "url": "https://raw.githubusercontent.com/anybodyiskiller-cpu/icons-escapism/refs/heads/main/icons/claude.png"
+      "url": "https://raw.githubusercontent.com/XXhaos/Surge/master/icons/claude.png"
     },
     {
       "name": "Spark Mail",
-      "url": "https://raw.githubusercontent.com/XXhaos/icon/main/icons/spark.png"
+      "url": "https://raw.githubusercontent.com/XXhaos/Surge/master/icons/spark.png"
     },
     {
       "name": "Surfshark",
-      "url": "https://raw.githubusercontent.com/XXhaos/icon/main/icons/surfshark.png"
+      "url": "https://raw.githubusercontent.com/XXhaos/Surge/master/icons/surfshark.png"
     },
   ]
 }
