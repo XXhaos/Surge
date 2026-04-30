@@ -1,0 +1,13 @@
+#!name=NodeSeek 自动签到
+#!desc=NodeSeek 论坛 Cookie 抓取与每日自动签到
+#!category=签到
+#!arguments=random:false
+#!arguments-desc=random：签到模式\n  false = 固定 5 个鸡腿（默认，稳定）\n  true  = 随机鸡腿（数量随机，可能多可能少）
+
+[Script]
+NodeSeek 抓取Cookie = type=http-response,pattern=^https://www\.nodeseek\.com/api/account/getInfo/.+\?readme=,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/master/Scripts/nodeseek.js,requires-body=true,timeout=60
+
+NodeSeek 每日签到 = type=cron,cronexp=10 0 * * *,script-path=https://raw.githubusercontent.com/XXhaos/Surge/refs/heads/master/Scripts/nodeseek.js,wake-system=true,timeout=60,argument=is_default={{{random}}}
+
+[MITM]
+hostname = %APPEND% www.nodeseek.com
